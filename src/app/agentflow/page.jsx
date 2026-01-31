@@ -225,7 +225,7 @@ const NODE_TYPES = Object.values(NODE_CATEGORIES).flat().reduce((acc, node) => {
 
 // --- COMPONENTS ---
 
-const ConnectionPort = ({ type, position, nodeType, portData, onMouseDown, onMouseUp, onClick, isConnecting, nodeId }) => {
+const ConnectionPort = ({ type, position, portData, onMouseDown, onMouseUp, isConnecting }) => {
   const isInput = type === 'target';
   const positionClass = position === 'left' ? '-left-2.5' : '-right-2.5';
   
@@ -234,7 +234,6 @@ const ConnectionPort = ({ type, position, nodeType, portData, onMouseDown, onMou
       className={`absolute ${positionClass} top-1/2 -translate-y-1/2 flex items-center gap-1 z-30 group`}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
-      onClick={onClick}
     >
       {isInput && portData && (
         <span className="text-[9px] font-mono text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity pr-1 bg-black/50 px-1 rounded">
@@ -242,12 +241,12 @@ const ConnectionPort = ({ type, position, nodeType, portData, onMouseDown, onMou
         </span>
       )}
       <div 
-        className={`w-3.5 h-3.5 rounded-full border-2 cursor-pointer transition-all ${
+        className={`w-3.5 h-3.5 rounded-full border-2 cursor-crosshair transition-all ${
           isInput 
             ? `bg-gray-900 border-purple-500 hover:border-pink-400 hover:scale-125 ${isConnecting ? 'ring-2 ring-pink-500 scale-125 animate-pulse' : ''}` 
             : 'bg-gradient-to-br from-pink-500 to-purple-500 border-pink-300 hover:scale-125 shadow-lg shadow-pink-500/50'
         }`}
-        title={isInput ? 'Click to connect here' : 'Click to start connection'}
+        title={isInput ? 'Drop to connect' : 'Drag to connect'}
       />
       {!isInput && portData && (
         <span className="text-[9px] font-mono text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity pl-1 bg-black/50 px-1 rounded">
@@ -258,7 +257,7 @@ const ConnectionPort = ({ type, position, nodeType, portData, onMouseDown, onMou
   );
 };
 
-const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPortClick, isConnecting, logs }) => {
+const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPortMouseDown, onPortMouseUp, isConnecting, logs }) => {
   if (!nodeType) return null;
 
   const recentLog = logs.find(l => l.nodeId === node.id && Date.now() - l.timestamp < 3000);
@@ -285,13 +284,11 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
         <ConnectionPort 
           type="target"
           position="left"
-          nodeType={nodeType}
           portData={nodeType.inputs[0]}
-          nodeId={node.id}
           isConnecting={isConnecting?.targetId === node.id}
-          onClick={(e) => {
+          onMouseUp={(e) => {
             e.stopPropagation();
-            onPortClick(node.id, 'input');
+            onPortMouseUp(node.id);
           }}
         />
       )}
@@ -301,13 +298,11 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
         <ConnectionPort 
           type="source"
           position="right"
-          nodeType={nodeType}
           portData={nodeType.outputs[0]}
-          nodeId={node.id}
           isConnecting={isConnecting?.sourceId === node.id}
-          onClick={(e) => {
+          onMouseDown={(e) => {
             e.stopPropagation();
-            onPortClick(node.id, 'output');
+            onPortMouseDown(node.id);
           }}
         />
       )}
@@ -440,7 +435,8 @@ export default function AIWorkflowAutomation() {
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   const [draggingId, setDraggingId] = useState(null);
-  const [connectingMode, setConnectingMode] = useState(null);
+  const [connectingDrag, setConnectingDrag] = useState(null); // { sourceId, startPos }
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [hoveredEdge, setHoveredEdge] = useState(null);
   const [activePackets, setActivePackets] = useState([]);
   
@@ -459,7 +455,7 @@ export default function AIWorkflowAutomation() {
       setLogs([]);
       setSimState('idle');
       setActivePackets([]);
-      setConnectingMode(null);
+      setConnectingDrag(null);
     }
   };
 
@@ -489,27 +485,31 @@ export default function AIWorkflowAutomation() {
     }]);
   };
 
-  // Easy connection creation with click
-  const handlePortClick = (nodeId, portType) => {
-    if (portType === 'output') {
-      setConnectingMode({ sourceId: nodeId });
-      addLog('system', 'Click on an input port to connect', 'info');
-    } else if (portType === 'input' && connectingMode?.sourceId) {
-      if (connectingMode.sourceId !== nodeId) {
-        const exists = edges.find(e => e.source === connectingMode.sourceId && e.target === nodeId);
-        if (!exists) {
-          setEdges(prev => [...prev, {
-            id: `e-${Date.now()}`,
-            source: connectingMode.sourceId,
-            target: nodeId
-          }]);
-          addLog('system', '✓ Nodes connected successfully', 'success');
-        } else {
-          addLog('system', '⚠ Connection already exists', 'warning');
-        }
+  // Connection dragging logic
+  const handlePortMouseDown = (nodeId) => {
+    const center = getNodeCenter(nodeId);
+    setConnectingDrag({ 
+      sourceId: nodeId, 
+      startPos: { x: center.x, y: center.y } 
+    });
+    addLog('system', 'Dragging connection to target input...', 'info');
+  };
+
+  const handlePortMouseUp = (nodeId) => {
+    if (connectingDrag && connectingDrag.sourceId !== nodeId) {
+      const exists = edges.find(e => e.source === connectingDrag.sourceId && e.target === nodeId);
+      if (!exists) {
+        setEdges(prev => [...prev, {
+          id: `e-${Date.now()}`,
+          source: connectingDrag.sourceId,
+          target: nodeId
+        }]);
+        addLog('system', '✓ Neural link established via drag', 'success');
+      } else {
+        addLog('system', '⚠ Connection already exists', 'warning');
       }
-      setConnectingMode(null);
     }
+    setConnectingDrag(null);
   };
 
   // Event Handlers
@@ -542,13 +542,15 @@ export default function AIWorkflowAutomation() {
   };
 
   const handleMouseMove = (e) => {
+    const pos = getClientOffset(e);
+    setMousePos(pos);
+
     if (isPanning) {
       setPan({
         x: e.clientX - panStart.current.x,
         y: e.clientY - panStart.current.y
       });
     } else if (draggingId) {
-      const pos = getClientOffset(e);
       setNodes(prev => prev.map(n => 
         n.id === draggingId 
           ? { ...n, x: pos.x - dragOffset.current.x, y: pos.y - dragOffset.current.y }
@@ -560,6 +562,7 @@ export default function AIWorkflowAutomation() {
   const handleMouseUp = () => {
     setIsPanning(false);
     setDraggingId(null);
+    setConnectingDrag(null);
   };
 
   const handleSidebarDragStart = (e, nodeTypeId) => {
@@ -599,7 +602,6 @@ export default function AIWorkflowAutomation() {
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   const movePacket = async (sourceId, targetId, duration = 800) => {
-    // FIX: Generate a truly unique ID by combining timestamp and random string
     const packetId = `packet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     return new Promise(resolve => {
       const startTime = performance.now();
@@ -665,13 +667,9 @@ export default function AIWorkflowAutomation() {
     await sleep(800 + Math.random() * 400);
     
     if (!cancelSimulation.current) {
-      // Chaos mode recovery logic
       if (chaosMode && Math.random() > 0.7) {
-        // Mark as error
         setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, status: 'error' } : n));
         addLog(nodeId, failureMessages[node.type] || '✗ Operation failed', 'error');
-        
-        // Wait for auto-healing
         await sleep(1500);
         addLog(nodeId, `🔧 Automatic recovery: System self-healed.`, 'info');
         await sleep(500);
@@ -680,7 +678,6 @@ export default function AIWorkflowAutomation() {
         addLog(nodeId, successMessages[node.type] || '✓ Processing complete', 'success');
       }
 
-      // Mark as success and continue regardless of whether it failed then recovered or just succeeded
       setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, status: 'success' } : n));
 
       const outgoing = edges.filter(e => e.source === nodeId);
@@ -693,15 +690,12 @@ export default function AIWorkflowAutomation() {
 
   const runSimulation = async () => {
     if (simState === 'running') return;
-    
     cancelSimulation.current = false;
     setSimState('running');
     setLogs([]);
     setNodes(prev => prev.map(n => ({ ...n, status: 'idle' })));
     setActivePackets([]);
-
     const startNodes = nodes.filter(n => !edges.find(e => e.target === n.id));
-    
     try {
       await Promise.all(startNodes.map(n => processNode(n.id)));
     } finally {
@@ -716,7 +710,6 @@ export default function AIWorkflowAutomation() {
     setNodes(prev => prev.map(n => ({ ...n, status: 'idle' })));
   };
 
-  // Edge path calculation
   const getEdgePath = (sourceId, targetId) => {
     const s = getNodeCenter(sourceId);
     const t = getNodeCenter(targetId);
@@ -781,17 +774,12 @@ export default function AIWorkflowAutomation() {
                 ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 shadow-orange-500/30 ring-2 ring-red-500'
                 : 'bg-purple-950/50 border border-purple-700/50 hover:bg-purple-900/50 text-purple-300'
             }`}
-            title={chaosMode ? 'Chaos Mode: Failures will occur randomly' : 'Enable Chaos Mode to simulate failures'}
           >
             <AlertTriangle size={16} />
             {chaosMode ? 'Chaos Mode ON' : 'Chaos Mode'}
           </button>
 
-          <button
-            onClick={() => loadTemplate(currentTemplate)}
-            className="p-2 hover:bg-purple-900/30 rounded-lg transition-all"
-            title="Reset"
-          >
+          <button onClick={() => loadTemplate(currentTemplate)} className="p-2 hover:bg-purple-900/30 rounded-lg transition-all">
             <RotateCcw size={16} className="text-purple-400" />
           </button>
 
@@ -803,17 +791,7 @@ export default function AIWorkflowAutomation() {
                 : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 shadow-pink-500/30'
             }`}
           >
-            {simState === 'running' ? (
-              <>
-                <Pause size={16} />
-                Stop
-              </>
-            ) : (
-              <>
-                <PlayIcon size={16} />
-                Run Agent
-              </>
-            )}
+            {simState === 'running' ? <><Pause size={16} /> Stop</> : <><PlayIcon size={16} /> Run Agent</>}
           </button>
         </div>
       </div>
@@ -831,11 +809,7 @@ export default function AIWorkflowAutomation() {
           <div className="p-3 border-t border-purple-900/30 text-[10px] text-purple-400 space-y-1">
             <div className="flex items-center gap-2">
               <Circle size={6} className="text-pink-500" />
-              <span>Click output port, then input port to connect</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Circle size={6} className="text-pink-500" />
-              <span>Click edge + Click "Delete" to remove</span>
+              <span>Drag from right port to left port to connect</span>
             </div>
           </div>
         </div>
@@ -879,9 +853,7 @@ export default function AIWorkflowAutomation() {
                   </marker>
                   <filter id="glow">
                     <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                    <feMerge>
-                      <feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/>
-                    </feMerge>
+                    <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
                   </filter>
                 </defs>
 
@@ -889,23 +861,24 @@ export default function AIWorkflowAutomation() {
                   const path = getEdgePath(edge.source, edge.target);
                   const isHovered = hoveredEdge === edge.id;
                   return (
-                    <g
-                      key={edge.id}
-                      onMouseEnter={() => setHoveredEdge(edge.id)}
-                      onMouseLeave={() => setHoveredEdge(null)}
-                      onClick={() => handleDeleteEdge(edge.id)}
-                      className="cursor-pointer group"
-                    >
+                    <g key={edge.id} onMouseEnter={() => setHoveredEdge(edge.id)} onMouseLeave={() => setHoveredEdge(null)} onClick={() => handleDeleteEdge(edge.id)} className="cursor-pointer group">
                       <path d={path} stroke="transparent" strokeWidth="20" fill="none" />
                       <path d={path} stroke={isHovered ? '#ec4899' : '#9333ea'} strokeWidth={isHovered ? '3' : '2'} fill="none" markerEnd="url(#arrowhead)" className="transition-all" filter={isHovered ? "url(#glow)" : "none"} />
-                      {isHovered && (
-                        <text x={(getNodeCenter(edge.source).x + getNodeCenter(edge.target).x) / 2} y={(getNodeCenter(edge.source).y + getNodeCenter(edge.target).y) / 2 - 10} fill="#ec4899" fontSize="11" fontWeight="bold" textAnchor="middle" className="pointer-events-none">
-                          Click to delete
-                        </text>
-                      )}
                     </g>
                   );
                 })}
+
+                {/* Drag Connection Preview */}
+                {connectingDrag && (
+                  <path 
+                    d={`M ${connectingDrag.startPos.x} ${connectingDrag.startPos.y} C ${connectingDrag.startPos.x + 50} ${connectingDrag.startPos.y}, ${mousePos.x - 50} ${mousePos.y}, ${mousePos.x} ${mousePos.y}`} 
+                    stroke="#ec4899" 
+                    strokeWidth="2" 
+                    strokeDasharray="5,5"
+                    fill="none" 
+                    markerEnd="url(#arrowhead)"
+                  />
+                )}
 
                 {activePackets.map(packet => {
                   const pos = getPacketPosition(packet);
@@ -927,23 +900,13 @@ export default function AIWorkflowAutomation() {
                     isDragging={draggingId === node.id}
                     onMouseDown={handleNodeDragStart}
                     onDelete={handleDeleteNode}
-                    onPortClick={handlePortClick}
-                    isConnecting={connectingMode}
+                    onPortMouseDown={handlePortMouseDown}
+                    onPortMouseUp={handlePortMouseUp}
                     logs={logs}
                   />
                 ))}
               </div>
             </div>
-
-            {/* Connection indicator */}
-            {connectingMode && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-900 to-purple-900 border border-pink-500 px-4 py-2 rounded-lg shadow-xl z-50 animate-pulse">
-                <div className="flex items-center gap-2 text-sm text-pink-200">
-                  <Link2 size={16} className="text-pink-400" />
-                  <span>Click on an input port to complete connection</span>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Console */}
@@ -956,12 +919,7 @@ export default function AIWorkflowAutomation() {
               {logs.map(log => (
                 <div key={log.id} className={`flex gap-2 transition-colors ${log.type === 'suggestion' ? 'bg-amber-950/30 border-l-2 border-amber-500 pl-2 py-1' : ''}`}>
                   <span className="text-purple-600">{new Date(log.timestamp).toLocaleTimeString()}</span>
-                  <span className={
-                    log.type === 'error' ? 'text-red-400 font-semibold' : 
-                    log.type === 'success' ? 'text-emerald-400' : 
-                    log.type === 'info' ? 'text-blue-400 font-medium' :
-                    'text-purple-300'
-                  }>
+                  <span className={log.type === 'error' ? 'text-red-400 font-semibold' : log.type === 'success' ? 'text-emerald-400' : log.type === 'info' ? 'text-blue-400 font-medium' : 'text-purple-300'}>
                     {log.message}
                   </span>
                 </div>
