@@ -1,0 +1,31 @@
+// models/component.model.js
+import mongoose from 'mongoose';
+
+const componentSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['LOAD_BALANCER', 'SERVER', 'DB', 'CACHE', 'WAF'],
+    required: true
+  },
+  model: {
+    type: String,
+    enum: ['small', 'medium', 'large'],
+    default: 'medium'
+  },
+  health: {
+    type: Number,
+    default: 100
+  },
+  costPerHour: {
+    type: Number,
+    default: 0
+  },
+  metrics: {
+    cpu: { type: Number, default: 0 },
+    memory: { type: Number, default: 0 },
+    latency: { type: Number, default: 0 },
+    requests: { type: Number, default: 0 }
+  }
+}, { timestamps: true }); // automatically adds createdAt and updatedAt
+
+export default mongoose.model('Component', componentSchema);
