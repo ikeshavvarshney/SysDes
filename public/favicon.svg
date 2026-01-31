@@ -1,0 +1,28 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64"
+  fill="none"
+>
+  <!-- Background -->
+  <rect width="64" height="64" rx="12" fill="#050B1E" />
+
+  <!-- Frame -->
+  <rect
+    x="10"
+    y="10"
+    width="44"
+    height="44"
+    rx="6"
+    stroke="#34D399"
+    stroke-width="3"
+  />
+
+  <!-- Stylized S -->
+  <path
+    d="M38 20H26C23.8 20 22 21.8 22 24C22 26.2 23.8 28 26 28H38C40.2 28 42 29.8 42 32C42 34.2 40.2 36 38 36H26"
+    stroke="#34D399"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

@@ -8,13 +8,13 @@ export default function AuthPage() {
   const isSignup = mode === "signup";
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#050B1E] via-[#081A2F] to-[#120A2A] text-slate-200">
+    <main className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#050B1E] via-[#081A2F] to-[#120A2A] text-slate-200">
 
       {/* Animated background strokes */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 left-1/4 h-[600px] w-[2px] bg-emerald-400/20 rotate-12 animate-pulse" />
-        <div className="absolute top-0 left-2/3 h-[500px] w-[1px] bg-pink-400/20 -rotate-12 animate-pulse delay-300" />
-        <div className="absolute top-1/3 left-1/2 h-[700px] w-[1px] bg-blue-400/20 rotate-6 animate-pulse delay-700" />
+        <div className="absolute -top-40 left-1/4 h-150 w-0.5 bg-emerald-400/20 rotate-12 animate-pulse" />
+        <div className="absolute top-0 left-2/3 h-125 w-px bg-pink-400/20 -rotate-12 animate-pulse delay-300" />
+        <div className="absolute top-1/3 left-1/2 h-175 w-px bg-blue-400/20 rotate-6 animate-pulse delay-700" />
       </div>
 
       <Navbar />

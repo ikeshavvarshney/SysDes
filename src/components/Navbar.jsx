@@ -1,11 +1,15 @@
+import Link from "next/link";
 export default function Navbar({ isSignedIn = false }) {
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-16 py-4 border-b border-white/10 bg-[#050B1E]/80 backdrop-blur">
-      
+
       {/* Logo */}
-      <h1 className="text-lg font-semibold tracking-wide">
-        SYSTEM <span className="text-emerald-400">SKETCH</span>
-      </h1>
+      <div className="flex items-center gap-1">
+        <img src="/favicon.svg" width="32" height="32" alt="System Sketch Logo" />
+        <h1 className="text-lg font-semibold tracking-wide">
+          SYSTEM <span className="text-emerald-400">SKETCH</span>
+        </h1>
+      </div>
 
       {/* Center Nav (only if signed in) */}
       {isSignedIn && (
@@ -38,10 +42,10 @@ export default function Navbar({ isSignedIn = false }) {
             </Link>
           </>
         ) : (<Link href="/profile">
-            <div className="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center text-sm font-medium text-slate-300 hover:border-emerald-400 hover:text-emerald-400 transition cursor-pointer">
-              K
-            </div>
-          </Link>)}
+          <div className="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center text-sm font-medium text-slate-300 hover:border-emerald-400 hover:text-emerald-400 transition cursor-pointer">
+            K
+          </div>
+        </Link>)}
       </div>
 
     </header>
