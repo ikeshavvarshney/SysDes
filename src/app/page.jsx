@@ -8,7 +8,7 @@ export default function Home() {
       <Navbar />
 
       {/* HERO */}
-      <section className="bg-gradient-to-br from-[#050B1E] via-[#081A2F] to-[#120A2A] px-6 md:px-16 pt-28 pb-24">
+      <section className="bg-linear-to-br from-[#050B1E] via-[#081A2F] to-[#120A2A] px-6 md:px-16 pt-28 pb-24">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-semibold leading-tight">
             Systems don’t fail.
@@ -78,7 +78,7 @@ export default function Home() {
       </section>
 
       {/* DESIGN */}
-      <section className="bg-gradient-to-br from-[#07142E] to-[#020617] px-6 md:px-16 py-24">
+      <section className="bg-linear-to-br from-[#07142E] to-[#020617] px-6 md:px-16 py-24">
         <div className="max-w-6xl mx-auto">
           <h3 className="text-2xl font-semibold text-blue-400">
             System Design
@@ -92,7 +92,7 @@ export default function Home() {
       </section>
 
       {/* SECURITY */}
-      <section className="bg-gradient-to-br from-[#02140C] to-[#020A06] px-6 md:px-16 py-24">
+      <section className="bg-linear-to-br from-[#02140C] to-[#020A06] px-6 md:px-16 py-24">
         <div className="max-w-6xl mx-auto">
           <h3 className="text-2xl font-semibold text-emerald-400">
             Security & Hacking
@@ -106,7 +106,7 @@ export default function Home() {
       </section>
 
       {/* AUTOMATION */}
-      <section className="bg-gradient-to-br from-[#1A0622] to-[#0B0210] px-6 md:px-16 py-24">
+      <section className="bg-linear-to-br from-[#1A0622] to-[#0B0210] px-6 md:px-16 py-24">
         <div className="max-w-6xl mx-auto">
           <h3 className="text-2xl font-semibold text-pink-400">
             Automation
@@ -129,9 +129,11 @@ export default function Home() {
             So you don’t destroy production later.
           </p>
 
-          <button className="mt-8 px-8 py-3 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition">
-            Enter Simulator
-          </button>
+          <Link href="/auth">
+            <button className="mt-8 px-8 py-3 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition">
+              Enter Simulator
+            </button>
+          </Link>
         </div>
       </section>
 

@@ -244,7 +244,7 @@ const ConnectionPort = ({ type, position, portData, onMouseDown, onMouseUp, isCo
         className={`w-3.5 h-3.5 rounded-full border-2 cursor-crosshair transition-all ${
           isInput 
             ? `bg-gray-900 border-purple-500 hover:border-pink-400 hover:scale-125 ${isConnecting ? 'ring-2 ring-pink-500 scale-125 animate-pulse' : ''}` 
-            : 'bg-gradient-to-br from-pink-500 to-purple-500 border-pink-300 hover:scale-125 shadow-lg shadow-pink-500/50'
+            : 'bg-linear-to-br from-pink-500 to-purple-500 border-pink-300 hover:scale-125 shadow-lg shadow-pink-500/50'
         }`}
         title={isInput ? 'Drop to connect' : 'Drag to connect'}
       />
@@ -264,7 +264,7 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
   
   return (
     <div
-      className={`absolute w-64 rounded-xl border-2 bg-gradient-to-br from-purple-950/90 via-gray-900/90 to-pink-950/90 backdrop-blur-sm transition-all duration-200 group ${
+      className={`absolute w-64 rounded-xl border-2 bg-linear-to-br from-purple-950/90 via-gray-900/90 to-pink-950/90 backdrop-blur-sm transition-all duration-200 group ${
         isDragging ? 'cursor-grabbing scale-105 z-50 shadow-2xl shadow-purple-500/30' : 'cursor-grab hover:shadow-xl hover:shadow-purple-500/20'
       } ${node.status === 'running' ? 'ring-2 ring-pink-500 shadow-pink-500/50 scale-105' : ''} ${
         node.status === 'error' ? 'ring-2 ring-red-500 shadow-red-500/50 animate-shake' : ''
@@ -325,7 +325,7 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
           e.stopPropagation();
           onDelete(node.id);
         }}
-        className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gradient-to-br from-red-500 to-pink-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20 hover:scale-110 shadow-lg"
+        className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-linear-to-br from-red-500 to-pink-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20 hover:scale-110 shadow-lg"
       >
         <X size={12} />
       </button>
@@ -369,7 +369,7 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
         {/* Progress Bar for Running State */}
         {node.status === 'running' && (
           <div className="mt-2 h-1.5 bg-gray-800 rounded-full overflow-hidden shadow-inner">
-            <div className="h-full bg-gradient-to-r from-pink-500 to-purple-500 animate-pulse shadow-lg" style={{ width: '60%' }} />
+            <div className="h-full bg-linear-to-r from-pink-500 to-purple-500 animate-pulse shadow-lg" style={{ width: '60%' }} />
           </div>
         )}
       </div>
@@ -377,7 +377,7 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
       {/* Floating Log Message */}
       {recentLog && (
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 pointer-events-none whitespace-nowrap">
-          <div className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-900 to-pink-900 border border-pink-500/50 text-xs text-pink-100 shadow-xl shadow-pink-500/20">
+          <div className="px-3 py-1.5 rounded-lg bg-linear-to-r from-purple-900 to-pink-900 border border-pink-500/50 text-xs text-pink-100 shadow-xl shadow-pink-500/20">
             {recentLog.message}
           </div>
         </div>
@@ -736,13 +736,13 @@ export default function AIWorkflowAutomation() {
   return (
     <div className="flex flex-col h-screen w-full bg-[#0a0118] text-gray-100 overflow-hidden font-sans">
       {/* Top Bar */}
-      <div className="h-14 bg-gradient-to-r from-[#150528] to-[#1a0a2e] border-b border-purple-900/50 flex items-center justify-between px-4 z-20 shadow-xl shadow-purple-900/20">
+      <div className="h-14 bg-linear-to-r from-[#150528] to-[#1a0a2e] border-b border-purple-900/50 flex items-center justify-between px-4 z-20 shadow-xl shadow-purple-900/20">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-gradient-to-br from-pink-600 to-purple-600 shadow-lg shadow-pink-500/30">
+            <div className="p-1.5 rounded-lg bg-linear-to-br from-pink-600 to-purple-600 shadow-lg shadow-pink-500/30">
               <Zap className="text-white" size={18} />
             </div>
-            <span className="font-bold text-lg bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">Agent Lab</span>
+            <span className="font-bold text-lg bg-linear-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">Agent Lab</span>
           </div>
           <div className="text-sm text-purple-400">Design your AI Agent logic.</div>
         </div>
@@ -771,7 +771,7 @@ export default function AIWorkflowAutomation() {
             onClick={() => setChaosMode(!chaosMode)}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium transition-all shadow-lg ${
               chaosMode
-                ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 shadow-orange-500/30 ring-2 ring-red-500'
+                ? 'bg-linear-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 shadow-orange-500/30 ring-2 ring-red-500'
                 : 'bg-purple-950/50 border border-purple-700/50 hover:bg-purple-900/50 text-purple-300'
             }`}
           >
@@ -787,8 +787,8 @@ export default function AIWorkflowAutomation() {
             onClick={simState === 'running' ? stopSimulation : runSimulation}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium transition-all shadow-lg ${
               simState === 'running'
-                ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 shadow-red-500/30'
-                : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 shadow-pink-500/30'
+                ? 'bg-linear-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 shadow-red-500/30'
+                : 'bg-linear-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 shadow-pink-500/30'
             }`}
           >
             {simState === 'running' ? <><Pause size={16} /> Stop</> : <><PlayIcon size={16} /> Run Agent</>}
@@ -798,7 +798,7 @@ export default function AIWorkflowAutomation() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className="w-64 bg-gradient-to-b from-[#150528] to-[#0a0118] border-r border-purple-900/50 flex flex-col overflow-hidden shadow-xl shadow-purple-900/10">
+        <div className="w-64 bg-linear-to-b from-[#150528] to-[#0a0118] border-r border-purple-900/50 flex flex-col overflow-hidden shadow-xl shadow-purple-900/10">
           <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
             <SidebarSection title="INPUTS" items={NODE_CATEGORIES.INPUTS} onDragStart={handleSidebarDragStart} />
             <SidebarSection title="MODELS" items={NODE_CATEGORIES.MODELS} onDragStart={handleSidebarDragStart} />
@@ -846,7 +846,7 @@ export default function AIWorkflowAutomation() {
               }}
             >
               {/* Edges */}
-              <svg className="absolute top-0 left-0 w-[5000px] h-[5000px] overflow-visible pointer-events-auto">
+              <svg className="absolute top-0 left-0 w-full h-full overflow-visible pointer-events-auto">
                 <defs>
                   <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
                     <polygon points="0 0, 10 5, 0 10" fill="#ec4899" />
@@ -910,7 +910,7 @@ export default function AIWorkflowAutomation() {
           </div>
 
           {/* Console */}
-          <div className="h-40 bg-gradient-to-b from-[#150528] to-[#0a0118] border-t border-purple-900/50 flex flex-col shadow-xl shadow-purple-900/10">
+          <div className="h-40 bg-linear-to-b from-[#150528] to-[#0a0118] border-t border-purple-900/50 flex flex-col shadow-xl shadow-purple-900/10">
             <div className="h-8 border-b border-purple-900/30 flex items-center px-4 justify-between">
               <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">System Console</span>
               <button onClick={() => setLogs([])} className="text-xs text-purple-500 hover:text-pink-400 transition-colors">Clear</button>
