@@ -3,9 +3,9 @@ import Component from "../models/component.js";
 import { calculateDesignCost } from "../services/costService.js";
 import { simulateTraffic } from "../services/trafficService.js";
 
-// ------------------------
-// CRUD Operations for Designs
-// ------------------------
+// ==========================================
+// EXISTING FUNCTIONS (Your original code)
+// ==========================================
 
 export const createDesign = async (req, res) => {
   try {
@@ -31,7 +31,7 @@ export const createDesign = async (req, res) => {
 
 export const getDesigns = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.userId; // Changed from req.user.id to req.userId
     const designs = await Design.find({ ownerId: userId }).populate("components");
     res.status(200).json(designs);
   } catch (error) {
@@ -92,9 +92,6 @@ export const deleteDesign = async (req, res) => {
   }
 };
 
-// ------------------------
-// Traffic Simulation
-// ------------------------
 export const simulateDesignTraffic = async (req, res) => {
   try {
     const { trafficIncrease } = req.body;
@@ -114,11 +111,10 @@ export const simulateDesignTraffic = async (req, res) => {
   }
 };
 
-// ------------------------
-// Add / Update Component in Design
-// ------------------------
+// ==========================================
+// MISSING FUNCTIONS (Add these)
+// ==========================================
 
-// Add a new component to design
 export const addComponentToDesign = async (req, res) => {
   try {
     const design = await Design.findById(req.params.id);
@@ -140,11 +136,10 @@ export const addComponentToDesign = async (req, res) => {
   }
 };
 
-// Update component metrics/details in design
 export const updateComponentInDesign = async (req, res) => {
   try {
     const { componentId } = req.params;
-    const updates = req.body; // frontend sends updated metrics, health, or other fields
+    const updates = req.body;
 
     const component = await Component.findByIdAndUpdate(componentId, updates, { new: true });
     if (!component) return res.status(404).json({ message: "Component not found" });

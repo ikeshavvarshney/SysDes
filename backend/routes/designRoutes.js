@@ -1,4 +1,5 @@
-import express from "express";
+import express from 'express';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import {
   createDesign,
   getDesigns,
@@ -8,23 +9,31 @@ import {
   simulateDesignTraffic,
   addComponentToDesign,
   updateComponentInDesign
-} from "../controllers/designController.js";
+} from '../controllers/designController.js';
 
 const router = express.Router();
 
-// CRUD routes
-router.post("/", createDesign);
-router.get("/", getDesigns);
-router.get("/:id", getDesignById);
-router.put("/:id", updateDesign);
-router.delete("/:id", deleteDesign);
+// ==========================================
+// DESIGN CRUD
+// ==========================================
 
-// Traffic simulation
-router.post("/:id/simulateTraffic", simulateDesignTraffic);
+router.post('/create', authMiddleware, createDesign);
+router.get('/', authMiddleware, getDesigns);
+router.get('/:id', authMiddleware, getDesignById);
+router.put('/:id', authMiddleware, updateDesign);
+router.delete('/:id', authMiddleware, deleteDesign);
 
-// Components
-router.post("/:id/components", addComponentToDesign);
-router.put("/components/:componentId", updateComponentInDesign);
+// ==========================================
+// COMPONENT MANAGEMENT
+// ==========================================
+
+router.post('/:id/components/add', authMiddleware, addComponentToDesign);
+router.put('/components/:componentId', authMiddleware, updateComponentInDesign);
+
+// ==========================================
+// SIMULATION
+// ==========================================
+
+router.post('/:id/simulate', authMiddleware, simulateDesignTraffic);
 
 export default router;
-
