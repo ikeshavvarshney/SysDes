@@ -1,4 +1,3 @@
-// models/component.js
 import mongoose from 'mongoose';
 
 const componentSchema = new mongoose.Schema({
@@ -25,7 +24,13 @@ const componentSchema = new mongoose.Schema({
     memory: { type: Number, default: 0 },
     latency: { type: Number, default: 0 },
     requests: { type: Number, default: 0 }
+  },
+  // NEW: capacity for traffic simulation
+  capacity: {
+    cpu: { type: Number, default: 100 },
+    memory: { type: Number, default: 100 },
+    requests: { type: Number, default: 1000 }
   }
-}, { timestamps: true }); // automatically adds createdAt and updatedAt
+}, { timestamps: true });
 
 export default mongoose.model('Component', componentSchema);

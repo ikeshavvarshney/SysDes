@@ -1,21 +1,30 @@
 import express from "express";
 import {
   createDesign,
-  getUserDesigns,
+  getDesigns,
   getDesignById,
   updateDesign,
-  deleteDesign
+  deleteDesign,
+  simulateDesignTraffic,
+  addComponentToDesign,
+  updateComponentInDesign
 } from "../controllers/designController.js";
-import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.use(authMiddleware); // all routes protected
-
+// CRUD routes
 router.post("/", createDesign);
-router.get("/", getUserDesigns);
+router.get("/", getDesigns);
 router.get("/:id", getDesignById);
 router.put("/:id", updateDesign);
 router.delete("/:id", deleteDesign);
 
+// Traffic simulation
+router.post("/:id/simulateTraffic", simulateDesignTraffic);
+
+// Components
+router.post("/:id/components", addComponentToDesign);
+router.put("/components/:componentId", updateComponentInDesign);
+
 export default router;
+

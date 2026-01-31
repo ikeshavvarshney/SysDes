@@ -1,11 +1,10 @@
 import express from "express";
-import { pushCommit, getCommits } from "../controllers/commitController.js";
-import { authMiddleware } from "../middleware/authMiddleware.js";
+import { pushCommit, getCommits, undoCommit } from "../controllers/commitController.js";
 
 const router = express.Router();
-router.use(authMiddleware);
 
 router.post("/", pushCommit);
 router.get("/:designId", getCommits);
+router.post("/:designId/undo", undoCommit); // NEW
 
 export default router;
