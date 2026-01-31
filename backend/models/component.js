@@ -1,4 +1,4 @@
-// models/component.model.js
+// models/component.js
 import mongoose from 'mongoose';
 
 const componentSchema = new mongoose.Schema({

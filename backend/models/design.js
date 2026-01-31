@@ -1,4 +1,4 @@
-// models/design.model.js
+// models/design.js
 import mongoose from 'mongoose';
 
 const designSchema = new mongoose.Schema({
