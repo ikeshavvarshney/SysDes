@@ -8,7 +8,9 @@ import {
   Router, Cloud, Move, Bot, Play, Pause, FastForward,
   MousePointer2, FileWarning, Search, XCircle, CheckCircle,
   Power, ZoomIn, ZoomOut, Plus, ShieldCheck, Crosshair,
-  Flame, ArrowUp, Sparkles, TrendingUp
+  Flame, ArrowUp, Sparkles, TrendingUp, Key, LogIn, BarChart3,
+  Radar, AlertCircle, Brain, Zap as ZapIcon, Shield as ShieldIcon,
+  Users, LogOut, Clock, Layers
 } from 'lucide-react';
 
 // ─── CONFIG ──────────────────────────────────────────────────
@@ -16,7 +18,6 @@ const MAX_HEALTH = 100;
 const BASE_ATTACK_INTERVAL = 2000;
 
 // ─── PHOENIX EVOLUTION TIERS ─────────────────────────────────
-// Each collapse upgrades the system. This is the CORE hackathon mechanic.
 const PHOENIX_TIERS = {
   0: {
     label: "BASELINE",
@@ -78,6 +79,90 @@ const INITIAL_CONNECTIONS = [
   { from: 'app', to: 'db' },
 ];
 
+// ─── NEW SECURITY COMPONENTS ─────────────────────────────────
+const SECURITY_COMPONENTS = {
+  'ENCRYPTION': {
+    label: '🔐 Encryption Engine',
+    icon: Lock,
+    color: '#ec4899',
+    desc: 'Data-at-rest & in-transit encryption',
+    fullDesc: 'AES-256, RSA-2048 algorithms with key rotation status',
+    type: 'security'
+  },
+  'ACCESS_VALIDATOR': {
+    label: '🔓 Access Validator',
+    icon: Unlock,
+    color: '#f97316',
+    desc: 'Decryption & access control enforcement',
+    fullDesc: 'Grant/deny decisions based on role, token, device',
+    type: 'security'
+  },
+  'THREAT_DETECTION': {
+    label: '🛡️ Threat Detection',
+    icon: AlertTriangle,
+    color: '#f59e0b',
+    desc: 'Brute-force, spikes, suspicious behavior',
+    fullDesc: 'Real-time anomaly detection with threat level meter',
+    type: 'security'
+  },
+  'IDS': {
+    label: '🚨 IDS/IPS System',
+    icon: Radar,
+    color: '#ef4444',
+    desc: 'Intrusion detection & prevention',
+    fullDesc: 'Monitors unauthorized API calls, tampered payloads',
+    type: 'security'
+  },
+  'AUTH_MANAGER': {
+    label: '👁️ Auth Manager',
+    icon: LogIn,
+    color: '#3b82f6',
+    desc: 'JWT/OAuth & RBAC enforcement',
+    fullDesc: 'Role-based access control with session tracking',
+    type: 'security'
+  },
+  'KMS': {
+    label: '🔑 Key Management',
+    icon: Key,
+    color: '#6366f1',
+    desc: 'Secure key storage & rotation',
+    fullDesc: 'Automatic rotation, revocation, secure storage',
+    type: 'security'
+  },
+  'AUDIT_LOG': {
+    label: '📜 Audit & Logs',
+    icon: BarChart3,
+    color: '#22c55e',
+    desc: 'Login, access, failed auth history',
+    fullDesc: 'Complete accountability trail with forensic analysis',
+    type: 'security'
+  },
+  'RATE_LIMITER': {
+    label: '🌐 Rate Limiter',
+    icon: Wifi,
+    color: '#14b8a6',
+    desc: 'DDoS & API abuse protection',
+    fullDesc: 'Request/minute monitoring with auto-blocking',
+    type: 'security'
+  },
+  'ANOMALY_DETECTION': {
+    label: '🧠 Anomaly AI',
+    icon: Brain,
+    color: '#8b5cf6',
+    desc: 'Behavioral AI threat detection',
+    fullDesc: 'Insider threat detection via pattern analysis',
+    type: 'security'
+  },
+  'INCIDENT_RESPONSE': {
+    label: '🧯 Incident Response',
+    icon: AlertCircle,
+    color: '#f43f5e',
+    desc: 'Auto-mitigation & blocking',
+    fullDesc: 'Immediate containment: block IP, lock account, alert',
+    type: 'security'
+  },
+};
+
 const ATTACK_TYPES = {
   'DDOS': { name: 'DDoS Flood', damage: 0.8, target: 'firewall', color: '#ef4444', protocol: 'HTTP', cost: 10, counter: 'TRAFFIC_FILTER' },
   'SQLI': { name: 'SQL Injection', damage: 15, target: 'db', color: '#a855f7', protocol: 'SQL', cost: 20, counter: 'SANITIZE_INPUT' },
@@ -101,6 +186,11 @@ export default function CyberSecuritySim() {
   const [resources, setResources] = useState(70);
   const [gameOver, setGameOver] = useState(false);
 
+  // ── Security Components
+  const [securityComponents, setSecurityComponents] = useState({});
+  const [draggedComponent, setDraggedComponent] = useState(null);
+  const [componentStats, setComponentStats] = useState({});
+
   // ── Gameplay
   const [gameMode, setGameMode] = useState('DEFENSE');
   const [speed, setSpeed] = useState(1);
@@ -114,8 +204,8 @@ export default function CyberSecuritySim() {
 
   // ── Phoenix Evolution
   const [phoenixTier, setPhoenixTier] = useState(0);
-  const [isPhoenixCrash, setIsPhoenixCrash] = useState(false); // full crash animation phase
-  const [phoenixPhase, setPhoenixPhase] = useState(''); // 'CRASHING','REBUILDING','UPGRADING','AWAKENING',''
+  const [isPhoenixCrash, setIsPhoenixCrash] = useState(false);
+  const [phoenixPhase, setPhoenixPhase] = useState('');
   const [collapseCount, setCollapseCount] = useState(0);
   const [showTierUpBanner, setShowTierUpBanner] = useState(false);
 
@@ -124,7 +214,7 @@ export default function CyberSecuritySim() {
   const mitigatedAttacksRef = useRef(new Set());
 
   // ── Predictive (Tier 2+)
-  const [predictedAttacks, setPredictedAttacks] = useState([]); // { type, target, eta }
+  const [predictedAttacks, setPredictedAttacks] = useState([]);
 
   // ── Viewport
   const [zoom, setZoom] = useState(0.75);
@@ -159,9 +249,9 @@ export default function CyberSecuritySim() {
   useEffect(() => {
     stateRef.current = {
       nodes, activeAttacks, speed, firewallRules, gameOver,
-      nodeStatus, isAutoDefense, resources, phoenixTier, isPhoenixCrash, predictedAttacks
+      nodeStatus, isAutoDefense, resources, phoenixTier, isPhoenixCrash, predictedAttacks, securityComponents
     };
-  }, [nodes, activeAttacks, speed, firewallRules, gameOver, nodeStatus, isAutoDefense, resources, phoenixTier, isPhoenixCrash, predictedAttacks]);
+  }, [nodes, activeAttacks, speed, firewallRules, gameOver, nodeStatus, isAutoDefense, resources, phoenixTier, isPhoenixCrash, predictedAttacks, securityComponents]);
 
   // ── Sync auto-defense toggle with phoenix tier
   useEffect(() => {
@@ -170,10 +260,71 @@ export default function CyberSecuritySim() {
   }, [phoenixTier]);
 
   // ═══════════════════════════════════════════════════════════
-  //  PHOENIX PROTOCOL — THE HACKATHON CORE MECHANIC
-  //  When the system collapses, instead of a simple "game over",
-  //  the system CRASHES → REBUILDS → UPGRADES → AWAKENS
-  //  Each cycle the network becomes strictly better than before.
+  //  SECURITY COMPONENTS LOGIC
+  // ═══════════════════════════════════════════════════════════
+  
+  const addSecurityComponent = useCallback((componentKey, x, y) => {
+    const id = `${componentKey}_${Date.now()}`;
+    const comp = SECURITY_COMPONENTS[componentKey];
+    
+    setSecurityComponents(prev => ({
+      ...prev,
+      [id]: {
+        id, key: componentKey, label: comp.label, x, y,
+        color: comp.color, icon: comp.icon, hp: 100, active: true
+      }
+    }));
+
+    setComponentStats(prev => ({
+      ...prev,
+      [id]: {
+        threatLevel: 'LOW',
+        blockedThreats: 0,
+        lastAction: new Date().toLocaleTimeString().split(' ')[0],
+        isOptimal: true
+      }
+    }));
+
+    addLog(`SECURITY: ${comp.label} deployed at canvas position`, "SUCCESS");
+  }, [addLog]);
+
+  const removeSecurityComponent = useCallback((id) => {
+    setSecurityComponents(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setComponentStats(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, []);
+
+  // ── Component contribution to system defense
+  const calculateComponentDefense = useCallback(() => {
+    let bonus = 0;
+    Object.values(securityComponents).forEach(comp => {
+      if (!comp.active) return;
+      switch (comp.key) {
+        case 'ENCRYPTION': bonus += 8; break;
+        case 'ACCESS_VALIDATOR': bonus += 6; break;
+        case 'THREAT_DETECTION': bonus += 12; break;
+        case 'IDS': bonus += 15; break;
+        case 'AUTH_MANAGER': bonus += 5; break;
+        case 'KMS': bonus += 4; break;
+        case 'AUDIT_LOG': bonus += 2; break;
+        case 'RATE_LIMITER': bonus += 18; break;
+        case 'ANOMALY_DETECTION': bonus += 14; break;
+        case 'INCIDENT_RESPONSE': bonus += 20; break;
+        default: break;
+      }
+    });
+    return Math.min(40, bonus); // Cap at 40% reduction
+  }, [securityComponents]);
+
+  // ═══════════════════════════════════════════════════════════
+  //  PHOENIX PROTOCOL
   // ═══════════════════════════════════════════════════════════
   const triggerPhoenixCrash = useCallback(() => {
     setIsPhoenixCrash(true);
@@ -191,7 +342,6 @@ export default function CyberSecuritySim() {
     addLog("  PHOENIX PROTOCOL INITIATED ...", "CRITICAL");
     addLog("═══════════════════════════════════════", "CRITICAL");
 
-    // Phase 1: CRASHING (2.5s) — everything visually disintegrates
     setTimeout(() => {
       setNodeStatus(prev => {
         const dead = {};
@@ -204,14 +354,12 @@ export default function CyberSecuritySim() {
       addLog("  All subsystems offline.", "CRITICAL");
     }, 1200);
 
-    // Phase 2: REBUILDING (4.5s total) — dark, then nodes flicker back
     setTimeout(() => {
       setPhoenixPhase('REBUILDING');
       setGlitchIntensity(0.6);
       addLog("  Initiating memory reformation ...", "INFO");
       addLog("  Reconstructing topology from backup ...", "INFO");
 
-      // Stagger node revival
       const order = ['firewall', 'lb', 'web', 'app', 'db'];
       order.forEach((id, i) => {
         setTimeout(() => {
@@ -221,7 +369,6 @@ export default function CyberSecuritySim() {
       });
     }, 2500);
 
-    // Phase 3: UPGRADING (6.5s total) — tier banner, stats improve
     setTimeout(() => {
       setPhoenixPhase('UPGRADING');
       setPhoenixTier(nextTier);
@@ -234,12 +381,10 @@ export default function CyberSecuritySim() {
       setTimeout(() => setShowTierUpBanner(false), 3500);
     }, 4500);
 
-    // Phase 4: AWAKENING (8s total) — full heal, resume
     setTimeout(() => {
       setPhoenixPhase('AWAKENING');
       setGlitchIntensity(0.2);
 
-      // Full restore with tier bonuses
       setNodeStatus(prev => {
         const healed = {};
         Object.keys(prev).forEach(k => { healed[k] = 100; });
@@ -259,7 +404,6 @@ export default function CyberSecuritySim() {
       addLog("═══════════════════════════════════════", "SUCCESS");
     }, 6500);
 
-    // Phase 5: RESUME (8.5s)
     setTimeout(() => {
       setPhoenixPhase('');
       setGlitchIntensity(0);
@@ -280,23 +424,32 @@ export default function CyberSecuritySim() {
   }, [systemIntegrity, hackerProgress, gameOver, isPhoenixCrash, triggerPhoenixCrash]);
 
   // ═══════════════════════════════════════════════════════════
-  //  AUTO-DEFENSE (activates at Tier 1+)
+  //  AUTO-DEFENSE
   // ═══════════════════════════════════════════════════════════
   useEffect(() => {
     if (!isAutoDefense || gameOver || isPhoenixCrash) return;
     const interval = setInterval(() => {
-      const { activeAttacks, resources, nodes, phoenixTier } = stateRef.current;
+      const { activeAttacks, resources, nodes, phoenixTier, securityComponents } = stateRef.current;
       const tier = PHOENIX_TIERS[phoenixTier];
+      
+      // Component-based defense bonus
+      const defenseBonus = calculateComponentDefense();
+      
       activeAttacks.forEach(attack => {
         if (mitigatedAttacksRef.current.has(attack.id)) return;
         const cmKey = ATTACK_TYPES[attack.type].counter;
         const cm = COUNTERMEASURES[cmKey];
-        if (resources >= cm.cost) {
+        
+        // Components may reduce cost
+        const adjustedCost = Math.max(1, cm.cost - defenseBonus / 2);
+        
+        if (resources >= adjustedCost) {
           mitigatedAttacksRef.current.add(attack.id);
-          const reactionDelay = Math.max(200, 600 - phoenixTier * 150); // faster at higher tiers
+          const reactionDelay = Math.max(200, 600 - phoenixTier * 150);
+          
           setTimeout(() => {
             if (stateRef.current.gameOver) return;
-            setResources(prev => Math.max(0, prev - cm.cost));
+            setResources(prev => Math.max(0, prev - adjustedCost));
             const fwNode = nodes.find(n => n.id === 'firewall');
             if (fwNode) {
               setPackets(prev => [...prev, {
@@ -319,17 +472,15 @@ export default function CyberSecuritySim() {
       });
     }, 500);
     return () => clearInterval(interval);
-  }, [isAutoDefense, gameOver, isPhoenixCrash, addLog]);
+  }, [isAutoDefense, gameOver, isPhoenixCrash, calculateComponentDefense, addLog]);
 
   // ═══════════════════════════════════════════════════════════
-  //  PREDICTIVE ENGINE (Tier 2+)
-  //  Predicts incoming attacks 2 seconds ahead based on history
+  //  PREDICTIVE ENGINE
   // ═══════════════════════════════════════════════════════════
   useEffect(() => {
     if (phoenixTier < 2 || gameOver || isPhoenixCrash) return;
     const interval = setInterval(() => {
       if (stateRef.current.speed === 0) return;
-      // Simulate: randomly predict an attack type that will come
       if (Math.random() < 0.3) {
         const keys = Object.keys(ATTACK_TYPES);
         const type = keys[Math.floor(Math.random() * keys.length)];
@@ -338,7 +489,6 @@ export default function CyberSecuritySim() {
         setPredictedAttacks(prev => [...prev.slice(-3), pred]);
         addLog(`PREDICTIVE: Anomaly detected — ${att.name} expected in ~2s`, "WARN");
 
-        // After 2s, if an attack of that type actually arrives, highlight it
         setTimeout(() => {
           setPredictedAttacks(prev => prev.filter(p => p.id !== pred.id));
         }, 2000);
@@ -367,13 +517,16 @@ export default function CyberSecuritySim() {
   }, [gameOver, isPhoenixCrash, speed, gameMode]);
 
   const tick = () => {
-    const { activeAttacks, firewallRules, nodeStatus, phoenixTier } = stateRef.current;
+    const { activeAttacks, firewallRules, nodeStatus, phoenixTier, securityComponents } = stateRef.current;
     const tier = PHOENIX_TIERS[phoenixTier];
+    
+    // Component defense reduction
+    const defenseReduction = calculateComponentDefense();
 
     // Resources regen
     setResources(prev => Math.min(100, prev + 0.1 * speed));
 
-    // Firewall regen (Tier 1+)
+    // Firewall regen
     if (tier.firewall.regen > 0) {
       setNodeStatus(prev => ({
         ...prev,
@@ -381,12 +534,32 @@ export default function CyberSecuritySim() {
       }));
     }
 
-    // Process attacks
+    // Security component degradation (they "wear out" under attack)
+    const totalAttackDamage = activeAttacks.length * 0.5;
+    setComponentStats(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(id => {
+        if (securityComponents[id]?.active) {
+          next[id] = {
+            ...next[id],
+            threatLevel: activeAttacks.length > 5 ? 'HIGH' : activeAttacks.length > 2 ? 'MEDIUM' : 'LOW',
+            blockedThreats: (next[id].blockedThreats || 0) + activeAttacks.length,
+            isOptimal: nodeStatus.firewall > 50
+          };
+        }
+      });
+      return next;
+    });
+
+    // Process attacks with component mitigation
     const nextStatus = { ...nodeStatus };
     activeAttacks.forEach(attack => {
       const proto = ATTACK_TYPES[attack.type].protocol;
       if (firewallRules[proto] === false) return;
-      const dmg = ATTACK_TYPES[attack.type].damage / 10;
+      
+      // Components reduce damage
+      let dmg = (ATTACK_TYPES[attack.type].damage / 10) * (1 - defenseReduction / 100);
+      
       if (nextStatus[attack.target] !== undefined) {
         nextStatus[attack.target] = Math.max(0, nextStatus[attack.target] - dmg);
       }
@@ -451,7 +624,7 @@ export default function CyberSecuritySim() {
   useEffect(() => {
     const animate = () => {
       setPackets(prev => {
-        const { nodes, activeAttacks, firewallRules, isPhoenixCrash, speed, gameOver } = stateRef.current;
+        const { nodes, activeAttacks, firewallRules, isPhoenixCrash, speed, gameOver, securityComponents } = stateRef.current;
         if (speed === 0 && !isPhoenixCrash) return prev;
         const next = [];
 
@@ -484,7 +657,6 @@ export default function CyberSecuritySim() {
           });
         }
 
-        // Phoenix rebuild healing packets
         if (isPhoenixCrash && stateRef.current.speed !== 0) {
           const targets = nodes.filter(n => n.id !== 'internet');
           if (targets.length && Math.random() > 0.6) {
@@ -508,29 +680,73 @@ export default function CyberSecuritySim() {
 
   // ─── CANVAS HANDLERS ─────────────────────────────────────
   const handleCanvasMouseDown = (e) => {
+    if (draggedComponent) return;
     setDragState({ isPanning: true, isDragging: false, nodeId: null, startX: e.clientX, startY: e.clientY, initialPanX: pan.x, initialPanY: pan.y, initialX: 0, initialY: 0 });
   };
+  
   const handleNodeMouseDown = (e, id) => {
     e.stopPropagation();
     const node = nodes.find(n => n.id === id);
     setDragState({ isDragging: true, isPanning: false, nodeId: id, startX: e.clientX, startY: e.clientY, initialX: node.x, initialY: node.y, initialPanX: 0, initialPanY: 0 });
     setSelectedNodeId(id);
   };
+
+  const handleSecurityComponentMouseDown = (e, id) => {
+    e.stopPropagation();
+    const comp = securityComponents[id];
+    setDragState({ isDragging: true, isPanning: false, nodeId: id, startX: e.clientX, startY: e.clientY, initialX: comp.x, initialY: comp.y, initialPanX: 0, initialPanY: 0, isComponent: true });
+  };
+
   const handleMouseMove = (e) => {
     if (dragState.isPanning) {
       setPan({ x: dragState.initialPanX + (e.clientX - dragState.startX), y: dragState.initialPanY + (e.clientY - dragState.startY) });
     } else if (dragState.isDragging) {
       const dx = (e.clientX - dragState.startX) / zoom;
       const dy = (e.clientY - dragState.startY) / zoom;
-      setNodes(prev => prev.map(n =>
-        n.id === dragState.nodeId
-          ? { ...n, x: Math.round((dragState.initialX + dx) / 20) * 20, y: Math.round((dragState.initialY + dy) / 20) * 20 }
-          : n
-      ));
+      
+      if (dragState.isComponent) {
+        setSecurityComponents(prev => ({
+          ...prev,
+          [dragState.nodeId]: {
+            ...prev[dragState.nodeId],
+            x: Math.round((dragState.initialX + dx) / 20) * 20,
+            y: Math.round((dragState.initialY + dy) / 20) * 20
+          }
+        }));
+      } else {
+        setNodes(prev => prev.map(n =>
+          n.id === dragState.nodeId
+            ? { ...n, x: Math.round((dragState.initialX + dx) / 20) * 20, y: Math.round((dragState.initialY + dy) / 20) * 20 }
+            : n
+        ));
+      }
     }
   };
+
   const handleMouseUp = () => {
-    setDragState({ isDragging: false, isPanning: false, nodeId: null, startX: 0, startY: 0, initialX: 0, initialY: 0, initialPanX: 0, initialPanY: 0 });
+    setDragState({ isDragging: false, isPanning: false, nodeId: null, startX: 0, startY: 0, initialX: 0, initialY: 0, initialPanX: 0, initialPanY: 0, isComponent: false });
+  };
+
+  const handleDragStart = (e, componentKey) => {
+    setDraggedComponent(componentKey);
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (!draggedComponent) return;
+    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left - pan.x) / zoom;
+    const y = (e.clientY - rect.top - pan.y) / zoom;
+    
+    addSecurityComponent(draggedComponent, Math.round(x / 20) * 20, Math.round(y / 20) * 20);
+    setDraggedComponent(null);
   };
 
   // ─── PACKET VISUALS ──────────────────────────────────────
@@ -572,7 +788,7 @@ export default function CyberSecuritySim() {
   return (
     <div className="flex h-screen w-full text-sm overflow-hidden" style={{ background: '#0a0e1a', color: '#cbd5e1', fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace" }}>
 
-      {/* ── Glitch overlay during crash ── */}
+      {/* ── Glitch overlay ── */}
       {glitchIntensity > 0 && (
         <div className="fixed inset-0 z-50 pointer-events-none" style={{ opacity: glitchIntensity * 0.15 }}>
           <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(239,68,68,0.08) 2px, rgba(239,68,68,0.08) 4px)' }} />
@@ -617,7 +833,7 @@ export default function CyberSecuritySim() {
       {/* ══════════════════════════════════════════════════════
           SIDEBAR
          ═════════════════════════════════════════════════════ */}
-      <div className="w-76 flex flex-col shadow-2xl" style={{ width: 296, background: '#0d1117', borderRight: '1px solid #1e293b', zIndex: 20 }}>
+      <div className="w-76 flex flex-col shadow-2xl overflow-hidden" style={{ width: 296, background: '#0d1117', borderRight: '1px solid #1e293b', zIndex: 20 }}>
 
         {/* Header */}
         <div className="p-4 flex items-center gap-3" style={{ borderBottom: '1px solid #1e293b' }}>
@@ -644,7 +860,6 @@ export default function CyberSecuritySim() {
               <span className="text-[9px] font-mono" style={{ color: '#64748b' }}>Collapses: {collapseCount}</span>
             </div>
             <div className="text-[9px] leading-relaxed" style={{ color: '#64748b' }}>{tier.badge}</div>
-            {/* Tier progress dots */}
             <div className="flex gap-1.5 mt-2">
               {[0, 1, 2, 3].map(i => (
                 <div key={i} className="h-1 flex-1 rounded-full transition-all duration-500" style={{
@@ -652,6 +867,35 @@ export default function CyberSecuritySim() {
                   boxShadow: i === phoenixTier ? `0 0 6px ${tierColor}` : 'none'
                 }} />
               ))}
+            </div>
+          </div>
+
+          {/* Security Components Palette */}
+          <div>
+            <div className="text-[9px] font-bold tracking-widest mb-2" style={{ color: '#475569' }}>SECURITY COMPONENTS</div>
+            <div className="grid grid-cols-2 gap-1.5 mb-3">
+              {Object.entries(SECURITY_COMPONENTS).map(([key, comp]) => {
+                const Icon = comp.icon;
+                return (
+                  <div
+                    key={key}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, key)}
+                    className="p-2 rounded cursor-move transition-all hover:scale-105 active:opacity-50"
+                    style={{
+                      background: `${comp.color}15`,
+                      border: `1px solid ${comp.color}44`,
+                      color: comp.color
+                    }}
+                    title={comp.fullDesc}
+                  >
+                    <div className="flex items-center gap-1.5 text-[9px] font-bold">
+                      <Icon className="w-3 h-3" />
+                      <span className="leading-tight">{comp.label.split(' ')[1]}</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -737,7 +981,7 @@ export default function CyberSecuritySim() {
             </div>
           </div>
 
-          {/* Predictive Warnings (Tier 2+) */}
+          {/* Predictive Warnings */}
           {phoenixTier >= 2 && (
             <div className="rounded-lg p-3" style={{ background: '#1a0f2e', border: '1px solid #4c1d95' }}>
               <div className="text-[9px] font-bold tracking-widest mb-2 flex items-center gap-1.5" style={{ color: '#a78bfa' }}>
@@ -806,7 +1050,6 @@ export default function CyberSecuritySim() {
 
           {/* Center — status */}
           <div className="flex items-center gap-5">
-            {/* Integrity */}
             <div className="flex flex-col items-center">
               <div className="text-[8px] tracking-widest uppercase" style={{ color: '#475569' }}>Integrity</div>
               <div className="text-sm font-black" style={{ color: systemIntegrity < 40 ? '#ef4444' : systemIntegrity < 70 ? '#f59e0b' : '#4ade80', textShadow: `0 0 8px ${systemIntegrity < 40 ? '#ef4444' : systemIntegrity < 70 ? '#f59e0b' : '#4ade80'}44` }}>
@@ -814,13 +1057,11 @@ export default function CyberSecuritySim() {
               </div>
             </div>
             <div style={{ width: 1, height: 28, background: '#1e293b' }} />
-            {/* Resources */}
             <div className="flex flex-col items-center">
               <div className="text-[8px] tracking-widest uppercase" style={{ color: '#475569' }}>Resources</div>
               <div className="text-sm font-black text-white">{Math.floor(resources)}</div>
             </div>
             <div style={{ width: 1, height: 28, background: '#1e293b' }} />
-            {/* Hacker */}
             <div className="flex flex-col items-center">
               <div className="text-[8px] tracking-widest uppercase" style={{ color: '#475569' }}>Threat Level</div>
               <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: '#1e293b' }}>
@@ -852,8 +1093,9 @@ export default function CyberSecuritySim() {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 relative overflow-hidden" style={{ background: '#0a0e1a', cursor: dragState.isPanning ? 'grabbing' : 'grab' }}
-          onMouseDown={handleCanvasMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} ref={canvasRef}>
+        <div className="flex-1 relative overflow-hidden" style={{ background: '#0a0e1a', cursor: dragState.isPanning ? 'grabbing' : draggedComponent ? 'copy' : 'grab' }}
+          onMouseDown={handleCanvasMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
+          onDragOver={handleDragOver} onDrop={handleDrop} ref={canvasRef}>
 
           {/* Grid */}
           <div className="absolute inset-0 pointer-events-none" style={{
@@ -943,7 +1185,6 @@ export default function CyberSecuritySim() {
                       zIndex: 10,
                       animation: dead ? 'shake 0.3s infinite' : attacked ? 'pulse-border 1.5s infinite' : 'none'
                     }}>
-                    {/* Predicted warning badge */}
                     {predicted && !dead && (
                       <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-1.5 py-0.25 rounded-full" style={{ background: '#1a0f2e', border: '1px solid #7c3aed', zIndex: 2 }}>
                         <Eye className="w-2.5 h-2.5" style={{ color: '#a78bfa' }} />
@@ -962,7 +1203,6 @@ export default function CyberSecuritySim() {
                       </div>
                     </div>
 
-                    {/* HP bar */}
                     {node.id !== 'internet' && !dead && (
                       <div className="px-2 pb-2">
                         <div className="h-1 rounded-full overflow-hidden" style={{ background: '#0d1117' }}>
@@ -975,12 +1215,52 @@ export default function CyberSecuritySim() {
                       </div>
                     )}
 
-                    {/* Dead overlay */}
                     {dead && (
                       <div className="absolute inset-0 rounded-xl flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.55)' }}>
                         <span className="text-[8px] font-black tracking-widest px-2 py-0.5 rounded" style={{ background: '#0d1117', border: '1px solid #ef4444', color: '#ef4444' }}>OFFLINE</span>
                       </div>
                     )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Security Components */}
+            <div className="relative" style={{ width: '100%', height: '100%', pointerEvents: 'auto' }}>
+              {Object.values(securityComponents).map(comp => {
+                const Icon = comp.icon;
+                const stats = componentStats[comp.id] || { threatLevel: 'LOW', blockedThreats: 0 };
+                const isSelected = selectedNodeId === comp.id;
+                
+                return (
+                  <div key={comp.id}
+                    onMouseDown={e => handleSecurityComponentMouseDown(e, comp.id)}
+                    onClick={() => setSelectedNodeId(comp.id)}
+                    className="absolute rounded-xl transition-all duration-200 cursor-move"
+                    style={{
+                      left: comp.x, top: comp.y, width: 120,
+                      background: `${comp.color}0a`,
+                      border: `1.5px solid ${isSelected ? comp.color : comp.color + '33'}`,
+                      boxShadow: isSelected ? `0 0 12px ${comp.color}44` : 'none',
+                      zIndex: isSelected ? 15 : 8,
+                      animation: stats.threatLevel === 'HIGH' ? 'pulse-border 1.5s infinite' : 'none'
+                    }}>
+                    <div className="p-2">
+                      <div className="flex justify-center mb-1">
+                        <div className="p-1.5 rounded-lg" style={{ background: `${comp.color}15` }}>
+                          <Icon className="w-4 h-4" style={{ color: comp.color }} />
+                        </div>
+                      </div>
+                      <div className="text-center text-[8px] font-bold" style={{ color: comp.color }}>
+                        {comp.label.split(' ')[1]}
+                      </div>
+                      <div className="text-[7px] text-center mt-1" style={{ color: '#64748b' }}>
+                        {stats.blockedThreats} blocks
+                      </div>
+                      <div className="text-[7px] text-center" style={{ color: stats.threatLevel === 'HIGH' ? '#ef4444' : stats.threatLevel === 'MEDIUM' ? '#f59e0b' : '#4ade80' }}>
+                        {stats.threatLevel}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -997,40 +1277,87 @@ export default function CyberSecuritySim() {
               <Search className="w-3 h-3" /> NODE INSPECTOR
             </div>
             {selectedNodeId ? (() => {
-              const n = nodes.find(x => x.id === selectedNodeId);
-              const h = nodeStatus[selectedNodeId] ?? 100;
-              const Icon = n.icon;
-              return (
-                <div>
-                  <div className="flex items-center gap-2 pb-2 mb-2" style={{ borderBottom: '1px solid #1e293b' }}>
-                    <Icon className="w-5 h-5" style={{ color: '#64748b' }} />
-                    <div>
-                      <div className="text-[11px] font-bold text-white">{n.label}</div>
-                      <div className="text-[8px]" style={{ color: '#475569' }}>{n.detail}</div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1.5 text-[9px]">
-                    <div className="rounded p-1.5 text-center" style={{ background: '#0a0e1a' }}>
-                      <div className="font-bold mb-0.5" style={{ color: '#475569' }}>HP</div>
-                      <div className="font-black" style={{ color: h < 30 ? '#ef4444' : h < 70 ? '#f59e0b' : '#4ade80' }}>{Math.round(h)}</div>
-                    </div>
-                    <div className="rounded p-1.5 text-center" style={{ background: '#0a0e1a' }}>
-                      <div className="font-bold mb-0.5" style={{ color: '#475569' }}>STATUS</div>
-                      <div className="font-bold" style={{ color: h === 0 ? '#ef4444' : h < 100 ? '#f59e0b' : '#4ade80' }}>
-                        {h === 0 ? 'OFF' : h < 100 ? 'WARN' : 'OK'}
+              const sc = securityComponents[selectedNodeId];
+              if (sc) {
+                const stats = componentStats[selectedNodeId];
+                const comp = SECURITY_COMPONENTS[sc.key];
+                const Icon = sc.icon;
+                return (
+                  <div>
+                    <div className="flex items-center gap-2 pb-2 mb-2" style={{ borderBottom: '1px solid #1e293b' }}>
+                      <Icon className="w-5 h-5" style={{ color: sc.color }} />
+                      <div>
+                        <div className="text-[11px] font-bold text-white">{sc.label}</div>
+                        <div className="text-[8px]" style={{ color: '#475569' }}>{comp.fullDesc}</div>
                       </div>
                     </div>
-                    <div className="rounded p-1.5 text-center" style={{ background: '#0a0e1a' }}>
-                      <div className="font-bold mb-0.5" style={{ color: '#475569' }}>LOAD</div>
-                      <div className="font-bold" style={{ color: activeAttacks.some(a => a.target === n.id) ? '#ef4444' : '#4ade80' }}>
-                        {activeAttacks.filter(a => a.target === n.id).length > 0 ? 'HIGH' : 'LOW'}
+                    <div className="grid grid-cols-3 gap-1.5 text-[9px]">
+                      <div className="rounded p-1.5 text-center" style={{ background: '#0a0e1a' }}>
+                        <div className="font-bold mb-0.5" style={{ color: '#475569' }}>THREAT</div>
+                        <div className="font-black" style={{ color: stats.threatLevel === 'HIGH' ? '#ef4444' : stats.threatLevel === 'MEDIUM' ? '#f59e0b' : '#4ade80' }}>
+                          {stats.threatLevel}
+                        </div>
+                      </div>
+                      <div className="rounded p-1.5 text-center" style={{ background: '#0a0e1a' }}>
+                        <div className="font-bold mb-0.5" style={{ color: '#475569' }}>BLOCKED</div>
+                        <div className="font-black text-white">{stats.blockedThreats}</div>
+                      </div>
+                      <div className="rounded p-1.5 text-center" style={{ background: '#0a0e1a' }}>
+                        <div className="font-bold mb-0.5" style={{ color: '#475569' }}>OPTIMAL</div>
+                        <div className="font-bold" style={{ color: stats.isOptimal ? '#4ade80' : '#ef4444' }}>
+                          {stats.isOptimal ? 'YES' : 'NO'}
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={() => removeSecurityComponent(selectedNodeId)}
+                      className="w-full mt-2 px-2 py-1.5 rounded text-[8px] font-bold transition-all"
+                      style={{
+                        background: '#1a0808',
+                        border: '1px solid #ef444433',
+                        color: '#f87171'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#2a1010'; e.currentTarget.style.borderColor = '#ef4444'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#1a0808'; e.currentTarget.style.borderColor = '#ef444433'; }}>
+                      REMOVE COMPONENT
+                    </button>
+                  </div>
+                );
+              } else {
+                const n = nodes.find(x => x.id === selectedNodeId);
+                const h = nodeStatus[selectedNodeId] ?? 100;
+                const Icon = n.icon;
+                return (
+                  <div>
+                    <div className="flex items-center gap-2 pb-2 mb-2" style={{ borderBottom: '1px solid #1e293b' }}>
+                      <Icon className="w-5 h-5" style={{ color: '#64748b' }} />
+                      <div>
+                        <div className="text-[11px] font-bold text-white">{n.label}</div>
+                        <div className="text-[8px]" style={{ color: '#475569' }}>{n.detail}</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5 text-[9px]">
+                      <div className="rounded p-1.5 text-center" style={{ background: '#0a0e1a' }}>
+                        <div className="font-bold mb-0.5" style={{ color: '#475569' }}>HP</div>
+                        <div className="font-black" style={{ color: h < 30 ? '#ef4444' : h < 70 ? '#f59e0b' : '#4ade80' }}>{Math.round(h)}</div>
+                      </div>
+                      <div className="rounded p-1.5 text-center" style={{ background: '#0a0e1a' }}>
+                        <div className="font-bold mb-0.5" style={{ color: '#475569' }}>STATUS</div>
+                        <div className="font-bold" style={{ color: h === 0 ? '#ef4444' : h < 100 ? '#f59e0b' : '#4ade80' }}>
+                          {h === 0 ? 'OFF' : h < 100 ? 'WARN' : 'OK'}
+                        </div>
+                      </div>
+                      <div className="rounded p-1.5 text-center" style={{ background: '#0a0e1a' }}>
+                        <div className="font-bold mb-0.5" style={{ color: '#475569' }}>LOAD</div>
+                        <div className="font-bold" style={{ color: activeAttacks.some(a => a.target === n.id) ? '#ef4444' : '#4ade80' }}>
+                          {activeAttacks.filter(a => a.target === n.id).length > 0 ? 'HIGH' : 'LOW'}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
+                );
+              }
             })() : (
-              <div className="py-4 text-center text-[9px]" style={{ color: '#334155' }}>Select a node to inspect</div>
+              <div className="py-4 text-center text-[9px]" style={{ color: '#334155' }}>Select a node or component</div>
             )}
           </div>
 
@@ -1115,8 +1442,8 @@ export default function CyberSecuritySim() {
           75% { transform: translate(2px, -1px); }
         }
         @keyframes pulse-border {
-          0%, 100% { box-shadow: 0 0 14px #f59e0b44; }
-          50% { box-shadow: 0 0 22px #f59e0b66; }
+          0%, 100% { box-shadow: 0 0 14px rgba(245,158,11,0.4); }
+          50% { box-shadow: 0 0 22px rgba(245,158,11,0.6); }
         }
         @keyframes shockwave {
           0% { transform: scale(0.5); opacity: 1; }
