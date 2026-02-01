@@ -577,6 +577,8 @@ export default function SystemDesignSimulator() {
           initialNodeX: 0, initialNodeY: 0,
           initialPanX: 0, initialPanY: 0
       });
+      // De-select immediately upon release (Momentary Switch behavior)
+      setSelectedId(null);
   };
 
   const addNode = (type) => {
@@ -597,7 +599,7 @@ export default function SystemDesignSimulator() {
           label: COMPONENT_TYPES[type].label
       };
       setNodes([...nodes, newNode]);
-      setSelectedId(id);
+      // Note: We don't select on create anymore to stay consistent with "hold to select"
   };
 
   const deleteNode = (id) => {
@@ -620,6 +622,8 @@ export default function SystemDesignSimulator() {
           if (!exists) setEdges([...edges, { from: connectState.startNodeId, to: targetId }]);
       }
       setConnectState({ isConnecting: false, startNodeId: null });
+      // Clean up drag and selection even if we released over a node
+      handleDragEnd();
   };
 
   const handleCanvasClick = () => {

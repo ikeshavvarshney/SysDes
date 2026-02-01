@@ -514,7 +514,7 @@ export default function CyberSecuritySim() {
           <div className="p-4 border-b border-slate-800 flex items-center gap-3">
               <Shield className="w-6 h-6 text-green-500 animate-pulse" />
               <div>
-                  <h1 className="font-black text-xl text-white tracking-tight">Cyber<span className="text-green-500">Security</span></h1>
+                  <h1 className="font-black text-xl text-white tracking-tight">CYBER<span className="text-green-500">SENTINEL</span></h1>
                   <div className="text-[10px] text-slate-500 font-mono tracking-widest">SOC SIMULATOR v9.0</div>
               </div>
           </div>
@@ -668,9 +668,9 @@ export default function CyberSecuritySim() {
           >
               {/* Dynamic Background */}
               <div 
-                  className="absolute inset-0 z-0 opacity-20 pointer-events-none" 
+                  className="absolute inset-0 z-0 opacity-30 pointer-events-none" 
                   style={{ 
-                      backgroundImage: 'radial-gradient(#1e293b 1px, transparent 1px)', 
+                      backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', 
                       backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
                       backgroundPosition: `${pan.x}px ${pan.y}px`
                   }}
