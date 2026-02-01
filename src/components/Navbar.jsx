@@ -1,53 +1,112 @@
-import Link from "next/link";
-export default function Navbar({ isSignedIn = false }) {
+"use client";
+
+import { useState } from "react";
+
+export default function Navbar({ isSignedIn, setIsSignedIn }) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-16 py-4 border-b border-white/10 bg-[#050B1E]/80 backdrop-blur">
+    <>
+      {/* NAVBAR */}
+      <header className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-16 py-4 border-b border-white/10 bg-[#050B1E]/80 backdrop-blur">
 
-      {/* Logo */}
-      <div className="flex items-center gap-1">
-        <img src="/favicon.svg" width="32" height="32" alt="System Sketch Logo" />
-        <h1 className="text-lg font-semibold tracking-wide">
-          SYSTEM <span className="text-emerald-400">SKETCH</span>
-        </h1>
-      </div>
+        {/* Logo */}
+        <div className="flex items-center gap-3">
+          <img src="/favicon.svg" width={32} alt="" />
+          <h1 className="text-lg font-semibold tracking-wide">
+            SYSTEM <span className="text-emerald-400">SKETCH</span>
+          </h1>
+        </div>
 
-      {/* Center Nav (only if signed in) */}
-      {isSignedIn && (
-        <nav className="hidden md:flex gap-10 text-sm text-slate-400">
-          <Link href="/design"><span className="cursor-pointer hover:text-blue-400 transition">
-            Design
-          </span></Link>
-          <Link href="/security"><span className="cursor-pointer hover:text-emerald-400 transition">
-            Security
-          </span></Link>
-          <Link href="/automation"><span className="cursor-pointer hover:text-pink-400 transition">
-            Automation
-          </span></Link>
-        </nav>
-      )}
+        {/* Center nav */}
+        {isSignedIn && (
+          <nav className="hidden md:flex gap-10 text-sm text-slate-400">
+            <span className="hover:text-blue-400 cursor-pointer">Design</span>
+            <span className="hover:text-emerald-400 cursor-pointer">Hacking</span>
+            <span className="hover:text-pink-400 cursor-pointer">Automation</span>
+          </nav>
+        )}
 
-      {/* Auth Actions */}
-      <div className="flex items-center gap-3">
-        {!isSignedIn ? (
-          <>
-            <Link href="/auth">
-              <button className="px-4 py-2 text-sm rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition">
+        {/* Right side */}
+        <div className="flex items-center gap-3">
+          {!isSignedIn ? (
+            <>
+              <button className="text-sm text-slate-400 hover:text-white">
                 Login
               </button>
-            </Link>
-            <Link href="/auth">
-              <button className="px-4 py-2 text-sm rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition">
+              <button className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30">
                 Sign Up
               </button>
-            </Link>
-          </>
-        ) : (<Link href="/profile">
-          <div className="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center text-sm font-medium text-slate-300 hover:border-emerald-400 hover:text-emerald-400 transition cursor-pointer">
-            K
-          </div>
-        </Link>)}
-      </div>
+            </>
+          ) : (
+            <div
+              onClick={() => setOpen(true)}
+              className="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center text-sm font-medium text-slate-300 hover:border-emerald-400 hover:text-emerald-400 cursor-pointer"
+            >
+              K
+            </div>
+          )}
+        </div>
+      </header>
 
-    </header>
+      {/* OVERLAY */}
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 bg-black/60 z-40"
+        />
+      )}
+
+      {/* SIDEBAR */}
+      <aside
+        className={`fixed top-0 right-0 z-50 h-full w-72 bg-[#050B1E] border-l border-white/10 transform transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"
+          }`}
+      >
+        <div className="flex flex-col h-full p-6">
+
+          {/* Logo */}
+          <h2 className="text-lg font-semibold mb-10">
+            SYSTEM <span className="text-emerald-400">SKETCH</span>
+          </h2>
+
+          {/* Nav links */}
+          <nav className="flex flex-col gap-4 text-sm text-slate-400">
+            <span className="hover:text-white cursor-pointer">Home</span>
+            <span className="hover:text-blue-400 cursor-pointer">Design</span>
+            <span className="hover:text-emerald-400 cursor-pointer">Hacking</span>
+            <span className="hover:text-pink-400 cursor-pointer">Automation</span>
+          </nav>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Logout */}
+          <button
+            onClick={() => {
+              setIsSignedIn(false);
+              setOpen(false);
+            }}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition"
+          >
+            {/* Logout SVG */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"
+              />
+            </svg>
+            Logout
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

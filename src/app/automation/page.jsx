@@ -742,7 +742,7 @@ export default function AIWorkflowAutomation() {
             <div className="p-1.5 rounded-lg bg-linear-to-br from-pink-600 to-purple-600 shadow-lg shadow-pink-500/30">
               <Zap className="text-white" size={18} />
             </div>
-            <span className="font-bold text-lg bg-linear-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">Agent Lab</span>
+            <span className="font-bold text-lg bg-linear-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">Automation</span>
           </div>
           <div className="text-sm text-purple-400">Design your AI Agent logic.</div>
         </div>

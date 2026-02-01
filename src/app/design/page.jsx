@@ -693,7 +693,7 @@ export default function SystemDesignSimulator() {
       <div className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col shadow-xl z-20">
         <div className="p-4 border-b border-slate-800 flex items-center space-x-2">
             <CloudLightning className="w-6 h-6 text-purple-400" />
-            <h1 className="font-bold text-lg tracking-tight">System</h1>
+            <h1 className="font-bold text-lg tracking-tight">Design</h1>
         </div>
         
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
