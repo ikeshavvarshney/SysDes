@@ -9,16 +9,39 @@ export default function Chatbot() {
     ]);
     const [input, setInput] = useState("");
 
-    const sendMessage = () => {
+    const sendMessage = async () => {
         if (!input.trim()) return;
 
-        setMessages((prev) => [
-            ...prev,
-            { role: "user", text: input },
-            { role: "bot", text: "Processing… (AI not wired yet)" },
-        ]);
+        const userText = input;
         setInput("");
+
+        setMessages((prev) => [...prev, { role: "user", text: userText }]);
+
+        try {
+            const res = await fetch("http://localhost:5001/api/chatbot/suggest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userMessage: userText }),
+            });
+
+            const data = await res.json();
+
+            setMessages((prev) => [
+                ...prev,
+                {
+                    role: "bot",
+                    text: data.reply,
+                    suggestions: data.suggestions || [],
+                },
+            ]);
+        } catch (err) {
+            setMessages((prev) => [
+                ...prev,
+                { role: "bot", text: "Server not responding." },
+            ]);
+        }
     };
+
 
     return (
         <>
@@ -42,16 +65,49 @@ export default function Chatbot() {
                     {/* Messages */}
                     <div className="flex-1 px-4 py-3 space-y-3 overflow-y-auto text-sm">
                         {messages.map((msg, i) => (
-                            <div
-                                key={i}
-                                className={`max-w-[80%] px-3 py-2 rounded-lg ${msg.role === "user"
-                                        ? "ml-auto bg-emerald-500/20 text-emerald-300"
-                                        : "bg-white/5 text-slate-300"
-                                    }`}
-                            >
-                                {msg.text}
+                            <div key={i} className="space-y-2">
+                                {/* Chat bubble */}
+                                <div
+                                    className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${msg.role === "user"
+                                            ? "ml-auto bg-emerald-500/20 text-emerald-300"
+                                            : "bg-white/5 text-slate-300"
+                                        }`}
+                                >
+                                    {msg.text}
+                                </div>
+
+                                {/* Suggestions (bot only) */}
+                                {msg.role === "bot" && msg.suggestions?.length > 0 && (
+                                    <div className="space-y-2 pl-1">
+                                        {msg.suggestions.map((s, idx) => (
+                                            <div
+                                                key={idx}
+                                                className="border border-white/10 bg-black/30 rounded-lg p-3 text-xs flex justify-between items-start hover:border-emerald-400/40 transition"
+                                            >
+                                                <div>
+                                                    <p className="font-medium text-slate-200">
+                                                        {s.component}
+                                                    </p>
+                                                    <p className="text-slate-400 mt-1">
+                                                        {s.reason}
+                                                    </p>
+                                                </div>
+
+                                                <button
+                                                    className="text-emerald-400 text-xs hover:underline"
+                                                    onClick={() => {
+                                                        console.log("ADD COMPONENT:", s.component);
+                                                    }}
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         ))}
+
                     </div>
 
                     {/* Input */}
