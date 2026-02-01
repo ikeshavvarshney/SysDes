@@ -1,9 +1,11 @@
 import Navbar from "@/components/Navbar";
+import Chatbot from "@/components/Chatbot";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <main className="min-h-screen text-slate-200 bg-black">
+      <Chatbot />
 
       {/* Navbar */}
       <Navbar />
