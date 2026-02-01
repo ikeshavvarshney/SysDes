@@ -10,6 +10,7 @@ import commitRoutes from "./routes/commitRoutes.js";
 import templateRoutes from "./routes/templateRoutes.js";
 import securityRoutes from "./routes/securityRoutes.js";
 import workflowRoutes from "./routes/workflowRoutes.js"; // NEW
+import chatbotRoutes from "./routes/chatbotRoutes.js";
 
 // Load environment variables first
 dotenv.config();
@@ -32,6 +33,7 @@ app.use("/api/commits", commitRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/security", securityRoutes);
 app.use("/api/workflows", workflowRoutes); // NEW
+app.use("/api/chatbot", chatbotRoutes);
 
 // Test route
 app.get("/", (req, res) => {
@@ -41,5 +43,3 @@ app.get("/", (req, res) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-
