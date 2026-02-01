@@ -1,5 +1,5 @@
-// models/design.js
 import mongoose from 'mongoose';
+
 const designSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -34,6 +34,22 @@ const designSchema = new mongoose.Schema({
     status: String,
     suggestions: [mongoose.Schema.Types.Mixed]
   },
+  
+  // NEW: Simulation History for replay/analysis
+  simulationHistory: [{
+    timestamp: { type: Date, default: Date.now },
+    nodes: [mongoose.Schema.Types.Mixed],
+    edges: [mongoose.Schema.Types.Mixed],
+    metrics: {
+      throughput: Number,
+      latency: Number,
+      errorRate: Number,
+      cost: Number,
+      score: Number
+    },
+    trafficLevel: Number
+  }],
+  
   trafficConfig: {
     currentLevel: { type: Number, default: 100 },
     maxLevel: { type: Number, default: 10000 }

@@ -8,7 +8,13 @@ import {
   deleteDesign,
   simulateDesignTraffic,
   addComponentToDesign,
-  updateComponentInDesign
+  updateComponentInDesign,
+  // NEW
+  saveSimulationSnapshot,
+  getSimulationHistory,
+  replaySnapshot,
+  getAutoScaleRecommendations,
+  applyRecommendation
 } from '../controllers/designController.js';
 
 const router = express.Router();
@@ -35,5 +41,20 @@ router.put('/components/:componentId', authMiddleware, updateComponentInDesign);
 // ==========================================
 
 router.post('/:id/simulate', authMiddleware, simulateDesignTraffic);
+
+// ==========================================
+// NEW: SNAPSHOT & HISTORY
+// ==========================================
+
+router.post('/:designId/snapshots', authMiddleware, saveSimulationSnapshot);
+router.get('/:designId/history', authMiddleware, getSimulationHistory);
+router.get('/:designId/snapshots/:snapshotIndex', authMiddleware, replaySnapshot);
+
+// ==========================================
+// NEW: AUTO-SCALE
+// ==========================================
+
+router.get('/:designId/recommendations', authMiddleware, getAutoScaleRecommendations);
+router.post('/:designId/recommendations/apply', authMiddleware, applyRecommendation);
 
 export default router;
