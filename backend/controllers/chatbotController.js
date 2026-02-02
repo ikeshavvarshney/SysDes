@@ -127,15 +127,19 @@ export const getChatbotSuggestion = async (req, res) => {
     // --------------------------------------
     if (!matchedPattern || highestScore === 0) {
       const geminiReply = await askGemini(`
-You are a helpful AI assistant.
+You are a senior system design engineer.
 
-Answer naturally like a normal conversational AI.
-If the question is about system design, explain clearly with examples.
-If the question is casual or conversational, respond normally.
+Answer rules (STRICT):
+- Use bullet points only
+- Max 6 bullets
+- Each bullet ≤ 15 words
+- No paragraphs
+- No examples unless asked
+- Be precise and technical
 
-User question:
+Question:
 ${userMessage}
-      `);
+`);
 
       return res.status(200).json({
         reply:

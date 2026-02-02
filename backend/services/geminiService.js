@@ -4,7 +4,7 @@ console.log("GEMINI KEY IN SERVICE:", !!process.env.GEMINI_API_KEY);
 export const askGemini = async (prompt) => {
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
@@ -22,8 +22,13 @@ export const askGemini = async (prompt) => {
 
     const data = await res.json();
 
-    // 🔍 Debug (keep for now)
+    // 🔍 keep this log until you're confident
     console.log("GEMINI RAW RESPONSE:", JSON.stringify(data, null, 2));
+
+    if (data.error) {
+      console.error("GEMINI ERROR:", data.error);
+      return null;
+    }
 
     const text =
       data?.candidates?.[0]?.content?.parts
@@ -36,3 +41,4 @@ export const askGemini = async (prompt) => {
     return null;
   }
 };
+
