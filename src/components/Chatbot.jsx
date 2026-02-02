@@ -29,6 +29,7 @@ export default function Chatbot() {
   // -------------------------------
   // Auto scroll to bottom
   // -------------------------------
+  // dep
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
