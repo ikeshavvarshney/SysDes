@@ -1,17 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 export default function AuthPage() {
-  const searchParams = useSearchParams();
-  const initialMode = searchParams.get("mode") === "login" ? "login" : "signup";
-
-  const [mode, setMode] = useState(initialMode);
+  const [mode, setMode] = useState("signup"); // signup | login
   const isSignup = mode === "signup";
-
   const [isSignIn, setIsSignIn] = useState(false);
 
   // Form State
@@ -40,7 +35,7 @@ export default function AuthPage() {
     // 1. Get the base URL from Environment Variables (Client Side)
     // 2. Fallback to localhost if env var is missing
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-
+    
     // 3. Construct the specific endpoint
     const BASE_URL = `${API_URL}/api/users`;
     const endpoint = isSignup ? `${BASE_URL}/register` : `${BASE_URL}/login`;
@@ -48,8 +43,8 @@ export default function AuthPage() {
 
     try {
       // Prepare payload (Login doesn't need 'name')
-      const payload = isSignup
-        ? formData
+      const payload = isSignup 
+        ? formData 
         : { email: formData.email, password: formData.password };
 
       const res = await fetch(endpoint, {
@@ -69,10 +64,10 @@ export default function AuthPage() {
       // Success: Store token & user
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      setIsSignIn(true);
-
+      setIsSignIn(true);      
+      
       // Redirect
-      window.location.href = "/";
+      window.location.href = "/"; 
 
     } catch (err) {
       setError(err.message);
@@ -83,9 +78,9 @@ export default function AuthPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-200 selection:bg-emerald-500/30">
-
+      
       {/* Background Gradients */}
-      <div className="absolute inset-0 bg-linear-to-br from-[#050B1E] via-[#081A2F] to-[#120A2A]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#050B1E] via-[#081A2F] to-[#120A2A]" />
 
       {/* Animated background strokes */}
       <div className="pointer-events-none absolute inset-0 z-0">
@@ -95,7 +90,7 @@ export default function AuthPage() {
       </div>
 
       <Navbar isSignedIn={isSignIn} setIsSignedIn={setIsSignIn} py={2}></Navbar>
-
+      
       <section className="relative z-10 flex items-center justify-center min-h-screen px-6 py-20">
         <div className="w-full max-w-md bg-white/5 border border-white/10 rounded-xl p-8 backdrop-blur shadow-2xl">
 
