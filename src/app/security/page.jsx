@@ -1,5 +1,8 @@
 "use client";
 
+import Navbar from '@/components/Navbar';
+import Chatbot from '@/components/Chatbot';
+import IntroCarousel from '@/components/IntroCarousel';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Shield, Lock, Unlock, Terminal, AlertTriangle,
@@ -177,6 +180,103 @@ const COUNTERMEASURES = {
   'ISOLATE_NODE': { label: 'Air Gap System', icon: Unlock, cost: 40, cooldown: 10000, desc: 'Emergency Containment' },
 };
 
+const securitySlides = [
+  {
+    title: "Encryption Engine",
+    description:
+      "Protects sensitive data both at rest and in transit using strong cryptographic standards. Ensures that even if data is intercepted or accessed illegally, it remains unreadable without valid keys.",
+  },
+  {
+    title: "Access Validator",
+    description:
+      "Enforces who can decrypt and access protected resources. Makes real-time allow or deny decisions based on user role, authentication token, device context, and policy rules.",
+  },
+  {
+    title: "Threat Detection",
+    description:
+      "Continuously monitors traffic and behavior patterns to detect suspicious activity. Identifies brute-force attempts, abnormal spikes, and early indicators of coordinated attacks.",
+  },
+  {
+    title: "IDS / IPS System",
+    description:
+      "Detects and actively blocks malicious activity at the network and application layer. Prevents unauthorized API calls, tampered payloads, and known exploit signatures from reaching services.",
+  },
+  {
+    title: "Authentication Manager",
+    description:
+      "Manages user identity, session state, and access privileges. Enforces JWT, OAuth, and role-based access control to ensure users only access what they are authorized to.",
+  },
+  {
+    title: "Key Management Service",
+    description:
+      "Securely stores, rotates, and revokes cryptographic keys. Eliminates hardcoded secrets and reduces blast radius if a key is compromised.",
+  },
+  {
+    title: "Audit & Logging",
+    description:
+      "Maintains a complete record of logins, access attempts, and failures. Enables accountability, compliance, and post-incident forensic analysis.",
+  },
+  {
+    title: "Rate Limiter",
+    description:
+      "Restricts excessive requests from clients to protect APIs and services. Plays a critical role in defending against DDoS attacks and automated abuse.",
+  },
+  {
+    title: "Anomaly AI",
+    description:
+      "Uses behavioral analysis to detect subtle or insider threats. Flags deviations from normal usage patterns that rule-based systems often miss.",
+  },
+  {
+    title: "Incident Response",
+    description:
+      "Automatically reacts to confirmed threats to limit damage. Can instantly block IPs, lock compromised accounts, and trigger alerts for operators.",
+  },
+];
+const attackSlides = [
+  {
+    title: "DDoS Flood",
+    description:
+      "Overwhelms the system with massive volumes of traffic to exhaust resources. Primary goal is denial of service rather than data theft.",
+  },
+  {
+    title: "SQL Injection",
+    description:
+      "Exploits unsafe query construction to manipulate or extract database data. One of the most damaging attacks if input validation is weak.",
+  },
+  {
+    title: "Brute Force SSH",
+    description:
+      "Attempts repeated credential guesses to gain unauthorized access. Relies on weak passwords or missing rate limits.",
+  },
+  {
+    title: "Remote Code Execution / Malware",
+    description:
+      "Executes malicious code on application servers after exploiting vulnerabilities. Can lead to full system compromise if not contained quickly.",
+  },
+];
+const countermeasureSlides = [
+  {
+    title: "Scrub Traffic",
+    description:
+      "Filters and cleans incoming traffic to remove malicious requests. Essential for mitigating large-scale volumetric attacks like DDoS.",
+  },
+  {
+    title: "Deploy WAF Rule",
+    description:
+      "Blocks malicious payloads and malformed queries at the edge. Prevents injection attacks before they reach backend services.",
+  },
+  {
+    title: "Blacklist IP",
+    description:
+      "Immediately blocks known malicious sources from accessing the system. Highly effective against brute-force and repeat attackers.",
+  },
+  {
+    title: "Air Gap System",
+    description:
+      "Isolates compromised nodes from the rest of the infrastructure. Used as an emergency containment measure to stop lateral movement.",
+  },
+];
+
 // ─── MAIN COMPONENT ──────────────────────────────────────────
 export default function CyberSecuritySim() {
   // ── Core State
@@ -262,11 +362,11 @@ export default function CyberSecuritySim() {
   // ═══════════════════════════════════════════════════════════
   //  SECURITY COMPONENTS LOGIC
   // ═══════════════════════════════════════════════════════════
-  
+
   const addSecurityComponent = useCallback((componentKey, x, y) => {
     const id = `${componentKey}_${Date.now()}`;
     const comp = SECURITY_COMPONENTS[componentKey];
-    
+
     setSecurityComponents(prev => ({
       ...prev,
       [id]: {
@@ -431,22 +531,22 @@ export default function CyberSecuritySim() {
     const interval = setInterval(() => {
       const { activeAttacks, resources, nodes, phoenixTier, securityComponents } = stateRef.current;
       const tier = PHOENIX_TIERS[phoenixTier];
-      
+
       // Component-based defense bonus
       const defenseBonus = calculateComponentDefense();
-      
+
       activeAttacks.forEach(attack => {
         if (mitigatedAttacksRef.current.has(attack.id)) return;
         const cmKey = ATTACK_TYPES[attack.type].counter;
         const cm = COUNTERMEASURES[cmKey];
-        
+
         // Components may reduce cost
         const adjustedCost = Math.max(1, cm.cost - defenseBonus / 2);
-        
+
         if (resources >= adjustedCost) {
           mitigatedAttacksRef.current.add(attack.id);
           const reactionDelay = Math.max(200, 600 - phoenixTier * 150);
-          
+
           setTimeout(() => {
             if (stateRef.current.gameOver) return;
             setResources(prev => Math.max(0, prev - adjustedCost));
@@ -519,7 +619,7 @@ export default function CyberSecuritySim() {
   const tick = () => {
     const { activeAttacks, firewallRules, nodeStatus, phoenixTier, securityComponents } = stateRef.current;
     const tier = PHOENIX_TIERS[phoenixTier];
-    
+
     // Component defense reduction
     const defenseReduction = calculateComponentDefense();
 
@@ -556,10 +656,10 @@ export default function CyberSecuritySim() {
     activeAttacks.forEach(attack => {
       const proto = ATTACK_TYPES[attack.type].protocol;
       if (firewallRules[proto] === false) return;
-      
+
       // Components reduce damage
       let dmg = (ATTACK_TYPES[attack.type].damage / 10) * (1 - defenseReduction / 100);
-      
+
       if (nextStatus[attack.target] !== undefined) {
         nextStatus[attack.target] = Math.max(0, nextStatus[attack.target] - dmg);
       }
@@ -683,7 +783,7 @@ export default function CyberSecuritySim() {
     if (draggedComponent) return;
     setDragState({ isPanning: true, isDragging: false, nodeId: null, startX: e.clientX, startY: e.clientY, initialPanX: pan.x, initialPanY: pan.y, initialX: 0, initialY: 0 });
   };
-  
+
   const handleNodeMouseDown = (e, id) => {
     e.stopPropagation();
     const node = nodes.find(n => n.id === id);
@@ -703,7 +803,7 @@ export default function CyberSecuritySim() {
     } else if (dragState.isDragging) {
       const dx = (e.clientX - dragState.startX) / zoom;
       const dy = (e.clientY - dragState.startY) / zoom;
-      
+
       if (dragState.isComponent) {
         setSecurityComponents(prev => ({
           ...prev,
@@ -740,11 +840,11 @@ export default function CyberSecuritySim() {
   const handleDrop = (e) => {
     e.preventDefault();
     if (!draggedComponent) return;
-    
+
     const rect = canvasRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left - pan.x) / zoom;
     const y = (e.clientY - rect.top - pan.y) / zoom;
-    
+
     addSecurityComponent(draggedComponent, Math.round(x / 20) * 20, Math.round(y / 20) * 20);
     setDraggedComponent(null);
   };
@@ -787,6 +887,22 @@ export default function CyberSecuritySim() {
   // ═══════════════════════════════════════════════════════════
   return (
     <div className="flex h-screen w-full text-sm overflow-hidden" style={{ background: '#0a0e1a', color: '#cbd5e1', fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace" }}>
+
+      <IntroCarousel
+        storageKey="security_sim_intro_seen"
+        heading="Types of Countermeasures"
+        slides={countermeasureSlides}
+      />
+      <IntroCarousel
+        storageKey="security_sim_intro_seen"
+        heading="Types of Cyber Attacks"
+        slides={attackSlides}
+      />
+      <IntroCarousel
+        storageKey="security_sim_intro_seen"
+        heading="Security Components"
+        slides={securitySlides}
+      />
 
       {/* ── Glitch overlay ── */}
       {glitchIntensity > 0 && (
@@ -842,7 +958,7 @@ export default function CyberSecuritySim() {
           </div>
           <div>
             <div className="font-black text-lg text-white tracking-tight" style={{ letterSpacing: '-0.02em' }}>
-              CYBER<span style={{ color: tierColor }}>SENTINEL</span>
+              SECUR<span style={{ color: tierColor }}>ITY</span>
             </div>
             <div className="text-[9px] tracking-widest uppercase" style={{ color: '#475569' }}>SOC Simulator — Phoenix Edition</div>
           </div>
@@ -1035,8 +1151,10 @@ export default function CyberSecuritySim() {
          ═════════════════════════════════════════════════════ */}
       <div className="flex-1 flex flex-col relative">
 
+        <Navbar py={2} />
+
         {/* Top Bar */}
-        <div className="h-14 flex items-center justify-between px-5" style={{ background: '#0d1117', borderBottom: '1px solid #1e293b', zIndex: 10 }}>
+        <div className="h-12 flex items-center justify-between px-5" style={{ background: '#0d1117', borderBottom: '1px solid #1e293b', zIndex: 10 }}>
           {/* Playback */}
           <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: '#0a0e1a', border: '1px solid #1e293b' }}>
             {[[0, Pause], [1, Play], [4, FastForward]].map(([s, Icon]) => (
@@ -1231,7 +1349,7 @@ export default function CyberSecuritySim() {
                 const Icon = comp.icon;
                 const stats = componentStats[comp.id] || { threatLevel: 'LOW', blockedThreats: 0 };
                 const isSelected = selectedNodeId === comp.id;
-                
+
                 return (
                   <div key={comp.id}
                     onMouseDown={e => handleSecurityComponentMouseDown(e, comp.id)}
@@ -1401,8 +1519,12 @@ export default function CyberSecuritySim() {
           </div>
         </div>
 
+        <div className='sticky bottom-4 right-4 z-100'>
+          <Chatbot />
+        </div>
+
         {/* ── Terminal Log ── */}
-        <div className="absolute bottom-4 right-4 pointer-events-none" style={{ width: 380, zIndex: 30 }}>
+        <div className="absolute bottom-4 left-4 pointer-events-none" style={{ width: 380, zIndex: 30 }}>
           <div className="rounded-xl overflow-hidden pointer-events-auto" style={{ background: '#050709dd', backdropFilter: 'blur(16px)', border: '1px solid #1e293b', height: 140 }}>
             <div className="flex items-center justify-between px-3 py-1.5" style={{ borderBottom: '1px solid #1e293b', background: '#0a0e1a' }}>
               <div className="flex items-center gap-1.5">
