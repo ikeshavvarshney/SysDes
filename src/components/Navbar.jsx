@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Navbar({ isSignedIn, setIsSignedIn, py=4 }) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <>
@@ -21,9 +24,9 @@ export default function Navbar({ isSignedIn, setIsSignedIn, py=4 }) {
         {/* Center nav */}
         {isSignedIn && (
           <nav className="hidden md:flex gap-10 text-sm text-slate-400">
-            <span className="hover:text-blue-400 cursor-pointer">Design</span>
-            <span className="hover:text-emerald-400 cursor-pointer">Hacking</span>
-            <span className="hover:text-pink-400 cursor-pointer">Automation</span>
+            <Link href="/design"><span className="hover:text-blue-400 cursor-pointer">Design</span></Link>
+            <Link href="/security"><span className="hover:text-emerald-400 cursor-pointer">Security</span></Link>
+            <Link href="/automation"><span className="hover:text-pink-400 cursor-pointer">Automation</span></Link>
           </nav>
         )}
 
@@ -31,12 +34,12 @@ export default function Navbar({ isSignedIn, setIsSignedIn, py=4 }) {
         <div className="flex items-center gap-3">
           {!isSignedIn ? (
             <>
-              <button className="text-sm text-slate-400 hover:text-white">
+              <Link href="/auth"><button className="text-sm text-slate-400 hover:text-white">
                 Login
-              </button>
-              <button className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30">
+              </button></Link>
+              <Link href="/auth"><button className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30">
                 Sign Up
-              </button>
+              </button></Link>
             </>
           ) : (
             <div
@@ -71,10 +74,10 @@ export default function Navbar({ isSignedIn, setIsSignedIn, py=4 }) {
 
           {/* Nav links */}
           <nav className="flex flex-col gap-4 text-sm text-slate-400">
-            <span className="hover:text-white cursor-pointer">Home</span>
-            <span className="hover:text-blue-400 cursor-pointer">Design</span>
-            <span className="hover:text-emerald-400 cursor-pointer">Hacking</span>
-            <span className="hover:text-pink-400 cursor-pointer">Automation</span>
+            <Link href="/"><span className="hover:text-white cursor-pointer">Home</span></Link>
+            <Link href="/design"><span className="hover:text-blue-400 cursor-pointer">Design</span></Link>
+            <Link href="/security"><span className="hover:text-emerald-400 cursor-pointer">Security</span></Link>
+            <Link href="/automation"><span className="hover:text-pink-400 cursor-pointer">Automation</span></Link>
           </nav>
 
           {/* Spacer */}
@@ -85,6 +88,7 @@ export default function Navbar({ isSignedIn, setIsSignedIn, py=4 }) {
             onClick={() => {
               setIsSignedIn(false);
               setOpen(false);
+              router.push("/");
             }}
             className="flex items-center gap-3 px-4 py-3 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition"
           >
