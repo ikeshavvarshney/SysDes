@@ -4,12 +4,12 @@ import Navbar from '@/components/Navbar';
 import IntroCarousel from '@/components/IntroCarousel';
 import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
 import {
-    Server, Database, Globe, Layers, Shield, Activity,DownloadCloud,
+    Server, Database, Globe, Layers, Shield, Activity, DownloadCloud,
     ArrowRight, Play, Pause, RefreshCw, AlertTriangle,
     Cpu, HardDrive, Zap, Search, Plus, Trash2,
     HelpCircle, Settings, CheckCircle, XCircle, Share2,
     CloudLightning, Lock, Box, ZoomIn, ZoomOut, Scale,
-    ChevronsUp, Move, Save // <--- Added Save Icon
+    ChevronsUp, Move, Save, FolderOpen, X, Clock, Edit2, Check
 } from 'lucide-react';
 
 // --- Constants & Config ---
@@ -66,7 +66,7 @@ const componentSlides = [
     {
         title: "SQL Database",
         description:
-            "Relational data store optimized for consistency and structured queries. Serves as the system’s source of truth for transactional and strongly related data.",
+            "Relational data store optimized for consistency and structured queries. Serves as the system's source of truth for transactional and strongly related data.",
     },
     {
         title: "NoSQL DB",
@@ -194,6 +194,357 @@ const SimulatorEdge = memo(({ start, end, isSimulating }) => {
     );
 });
 
+// --- Save Dialog Component ---
+const SaveDialog = ({ isOpen, onClose, onSave, isSaving, currentName }) => {
+    const [workflowName, setWorkflowName] = useState('');
+
+    useEffect(() => {
+        if (isOpen) {
+            // Pre-fill with current name if editing, or suggest a new name
+            if (currentName && currentName !== 'Untitled') {
+                setWorkflowName(currentName);
+            } else {
+                setWorkflowName(`My Workflow - ${new Date().toLocaleDateString()}`);
+            }
+        }
+    }, [isOpen, currentName]);
+
+    if (!isOpen) return null;
+
+    const handleSave = () => {
+        if (workflowName.trim()) {
+            onSave(workflowName.trim());
+        }
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && workflowName.trim()) {
+            handleSave();
+        }
+    };
+
+    return (
+        <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" 
+            onClick={onClose}
+        >
+            <div 
+                className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-6 w-[480px] animate-in zoom-in-95 fade-in duration-200" 
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
+                        <Save className="w-5 h-5 text-purple-400" />
+                        Save Workflow
+                    </h3>
+                    <button 
+                        onClick={onClose} 
+                        className="text-slate-400 hover:text-white transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-400 mb-2">
+                            Workflow Name
+                        </label>
+                        <input
+                            type="text"
+                            value={workflowName}
+                            onChange={(e) => setWorkflowName(e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            placeholder="e.g., E-commerce Architecture, Microservices Setup..."
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                            autoFocus
+                        />
+                        <p className="mt-2 text-xs text-slate-500">
+                            Give your workflow a descriptive name so you can find it easily later
+                        </p>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                        <button
+                            onClick={onClose}
+                            className="flex-1 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving || !workflowName.trim()}
+                            className="flex-1 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                        >
+                            {isSaving ? (
+                                <>
+                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-4 h-4" />
+                                    Save Workflow
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Load Dialog Component ---
+const LoadDialog = ({ isOpen, onClose, onLoad, onDelete }) => {
+    const [layouts, setLayouts] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [editName, setEditName] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchLayouts();
+        }
+    }, [isOpen]);
+
+    const fetchLayouts = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${API_URL}/api/layouts`);
+            const data = await response.json();
+            if (data.success) {
+                setLayouts(data.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch layouts:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDelete = async (id, e) => {
+        e.stopPropagation();
+        if (!confirm('Are you sure you want to delete this workflow? This action cannot be undone.')) return;
+
+        try {
+            const response = await fetch(`${API_URL}/api/layouts/${id}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+            if (data.success) {
+                setLayouts(layouts.filter(l => l._id !== id));
+                onDelete && onDelete(id);
+            }
+        } catch (error) {
+            console.error("Failed to delete layout:", error);
+            alert('Failed to delete workflow. Please try again.');
+        }
+    };
+
+    const startEditing = (layout, e) => {
+        e.stopPropagation();
+        setEditingId(layout._id);
+        setEditName(layout.name);
+    };
+
+    const cancelEditing = (e) => {
+        e.stopPropagation();
+        setEditingId(null);
+        setEditName('');
+    };
+
+    const saveEdit = async (id, e) => {
+        e.stopPropagation();
+        if (!editName.trim()) {
+            cancelEditing(e);
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/api/layouts/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: editName.trim() })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                setLayouts(layouts.map(l => 
+                    l._id === id ? { ...l, name: editName.trim() } : l
+                ));
+                setEditingId(null);
+                setEditName('');
+            }
+        } catch (error) {
+            console.error("Failed to rename layout:", error);
+            alert('Failed to rename workflow. Please try again.');
+        }
+    };
+
+    // Filter layouts based on search
+    const filteredLayouts = layouts.filter(layout =>
+        layout.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    if (!isOpen) return null;
+
+    return (
+        <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" 
+            onClick={onClose}
+        >
+            <div 
+                className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-6 w-[700px] max-h-[85vh] flex flex-col animate-in zoom-in-95 fade-in duration-200" 
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
+                        <FolderOpen className="w-5 h-5 text-purple-400" />
+                        Load Workflow
+                    </h3>
+                    <button 
+                        onClick={onClose} 
+                        className="text-slate-400 hover:text-white transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                {/* Search Bar */}
+                <div className="mb-4">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search workflows..."
+                            className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                        />
+                    </div>
+                </div>
+
+                {/* Layouts List */}
+                <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                    {isLoading ? (
+                        <div className="flex items-center justify-center py-16">
+                            <RefreshCw className="w-8 h-8 text-purple-400 animate-spin" />
+                        </div>
+                    ) : filteredLayouts.length === 0 ? (
+                        <div className="text-center py-16 text-slate-500">
+                            <FolderOpen className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                            {searchQuery ? (
+                                <>
+                                    <p className="text-lg font-medium">No workflows found</p>
+                                    <p className="text-sm mt-1">Try a different search term</p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-lg font-medium">No saved workflows yet</p>
+                                    <p className="text-sm mt-1">Create your first design and save it!</p>
+                                </>
+                            )}
+                        </div>
+                    ) : (
+                        filteredLayouts.map((layout) => (
+                            <div
+                                key={layout._id}
+                                onClick={() => onLoad(layout._id)}
+                                className="bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-purple-500 rounded-lg p-4 cursor-pointer transition-all group"
+                            >
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1 min-w-0 pr-3">
+                                        {editingId === layout._id ? (
+                                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                                <input
+                                                    type="text"
+                                                    value={editName}
+                                                    onChange={(e) => setEditName(e.target.value)}
+                                                    onKeyPress={(e) => {
+                                                        if (e.key === 'Enter') saveEdit(layout._id, e);
+                                                        if (e.key === 'Escape') cancelEditing(e);
+                                                    }}
+                                                    className="flex-1 bg-slate-900 border border-purple-500 rounded px-3 py-1.5 text-sm text-slate-200 focus:outline-none"
+                                                    autoFocus
+                                                />
+                                                <button
+                                                    onClick={(e) => saveEdit(layout._id, e)}
+                                                    className="p-1.5 hover:bg-emerald-500/20 text-emerald-400 rounded transition-all"
+                                                >
+                                                    <Check className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={cancelEditing}
+                                                    className="p-1.5 hover:bg-red-500/20 text-red-400 rounded transition-all"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <h4 className="font-semibold text-slate-200 truncate group-hover:text-purple-300 transition-colors text-base">
+                                                    {layout.name}
+                                                </h4>
+                                                <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        {new Date(layout.createdAt).toLocaleDateString('en-US', {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            year: 'numeric'
+                                                        })}
+                                                    </span>
+                                                    <span>
+                                                        {new Date(layout.createdAt).toLocaleTimeString('en-US', {
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        })}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={(e) => startEditing(layout, e)}
+                                            className="opacity-0 group-hover:opacity-100 p-2 hover:bg-blue-500/20 text-slate-400 hover:text-blue-400 rounded transition-all"
+                                            title="Rename workflow"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleDelete(layout._id, e)}
+                                            className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded transition-all"
+                                            title="Delete workflow"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Footer */}
+                <div className="pt-4 mt-4 border-t border-slate-700 flex items-center justify-between">
+                    <p className="text-sm text-slate-500">
+                        {filteredLayouts.length} {filteredLayouts.length === 1 ? 'workflow' : 'workflows'} available
+                    </p>
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium transition-colors"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // --- Main Application ---
 
 export default function SystemDesignSimulator() {
@@ -203,11 +554,17 @@ export default function SystemDesignSimulator() {
     const [selectedId, setSelectedId] = useState(null);
     const [isSimulating, setIsSimulating] = useState(false);
     const [isAutoScale, setIsAutoScale] = useState(false);
-    const [isSaving, setIsSaving] = useState(false); // <--- New State for Saving
+    const [isSaving, setIsSaving] = useState(false);
+    const [currentLayoutId, setCurrentLayoutId] = useState(null);
+    const [currentLayoutName, setCurrentLayoutName] = useState('Untitled');
+
+    // Dialog States
+    const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [showLoadDialog, setShowLoadDialog] = useState(false);
 
     // Viewport State
     const [zoom, setZoom] = useState(0.8);
-    const [pan, setPan] = useState({ x: 0, y: 0 }); // Pan offset
+    const [pan, setPan] = useState({ x: 0, y: 0 });
 
     const [trafficLevel, setTrafficLevel] = useState(500);
     const [metrics, setMetrics] = useState({ latency: 0, errorRate: 0, throughput: 0, cost: 0, score: 100 });
@@ -252,6 +609,18 @@ export default function SystemDesignSimulator() {
                 setSelectedId(null);
                 setConnectState({ isConnecting: false, startNodeId: null });
                 setDragState(prev => ({ ...prev, isDragging: false, isPanning: false }));
+                setShowSaveDialog(false);
+                setShowLoadDialog(false);
+            }
+            // Ctrl+S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                setShowSaveDialog(true);
+            }
+            // Ctrl+O to open
+            if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+                e.preventDefault();
+                setShowLoadDialog(true);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -259,47 +628,45 @@ export default function SystemDesignSimulator() {
     }, []);
 
     // --- Backend API Interaction ---
-    // --- NEW: Load Layout Logic ---
 
     const loadLatestLayout = async () => {
         try {
-            const response = await fetch(`${API_URL}/api/layouts/latest`);
+            const response = await fetch(`${API_URL}/api/layouts`);
             const data = await response.json();
 
-            if (data.success && data.data) {
-                const layout = data.data;
+            if (data.success && data.data && data.data.length > 0) {
+                // Load the most recent layout (first one, since they're sorted by createdAt desc)
+                const layout = data.data[0];
                 
-                // 1. Restore State
                 setNodes(layout.nodes || []);
                 setEdges(layout.edges || []);
                 
-                // 2. Restore Viewport
                 if (layout.viewport) {
-                    setPan({ x: layout.viewport.x, y: layout.viewport.y });
-                    setZoom(layout.viewport.zoom);
+                    setPan({ x: layout.viewport.x || 0, y: layout.viewport.y || 0 });
+                    setZoom(layout.viewport.zoom || 0.8);
                 }
 
-                // 3. Restore Config
                 if (layout.config) {
-                    setTrafficLevel(layout.config.trafficLevel);
+                    setTrafficLevel(layout.config.trafficLevel || 500);
                 }
 
-                setAlerts(prev => ["✅ Restored previous session", ...prev]);
+                setCurrentLayoutId(layout._id);
+                setCurrentLayoutName(layout.name);
+                setAlerts([`✅ Loaded: ${layout.name}`]);
             }
         } catch (error) {
             console.error("Failed to load layout:", error);
-            // Don't alert here, as it might just be a new user with no history
         }
     };
 
-    // --- NEW: Run on Component Mount ---
     useEffect(() => {
         loadLatestLayout();
-    }, []); // Empty dependency array = runs once on startup
-    const saveLayout = async () => {
+    }, []);
+
+    const saveLayout = async (name) => {
         setIsSaving(true);
         const payload = {
-            name: `Design - ${new Date().toLocaleString()}`,
+            name: name,
             nodes,
             edges,
             viewport: {
@@ -324,7 +691,10 @@ export default function SystemDesignSimulator() {
             const data = await response.json();
 
             if (data.success) {
-                setAlerts(prev => ["✅ Layout Saved Successfully!", ...prev]);
+                setCurrentLayoutId(data.data._id);
+                setCurrentLayoutName(name);
+                setAlerts(prev => [`✅ Saved: ${name}`, ...prev]);
+                setShowSaveDialog(false);
             } else {
                 throw new Error(data.error || "Failed to save");
             }
@@ -333,6 +703,46 @@ export default function SystemDesignSimulator() {
             console.error("Save error:", error);
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const loadLayout = async (layoutId) => {
+        try {
+            const response = await fetch(`${API_URL}/api/layouts/${layoutId}`);
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                const layout = data.data;
+                
+                setNodes(layout.nodes || []);
+                setEdges(layout.edges || []);
+                
+                if (layout.viewport) {
+                    setPan({ x: layout.viewport.x || 0, y: layout.viewport.y || 0 });
+                    setZoom(layout.viewport.zoom || 0.8);
+                }
+
+                if (layout.config) {
+                    setTrafficLevel(layout.config.trafficLevel || 500);
+                }
+
+                setCurrentLayoutId(layout._id);
+                setCurrentLayoutName(layout.name);
+                setIsSimulating(false);
+                setAlerts([`✅ Loaded: ${layout.name}`]);
+                setShowLoadDialog(false);
+            }
+        } catch (error) {
+            setAlerts(prev => [`❌ Load Failed: ${error.message}`, ...prev]);
+            console.error("Load error:", error);
+        }
+    };
+
+    const handleDeleteLayout = (layoutId) => {
+        // If deleted layout is the current one, reset to default
+        if (layoutId === currentLayoutId) {
+            setCurrentLayoutId(null);
+            setCurrentLayoutName('Untitled');
         }
     };
 
@@ -369,7 +779,6 @@ export default function SystemDesignSimulator() {
         let processedRps = 0;
         let newAlerts = [];
 
-        // Auto-Scaling Step
         if (autoScaleEnabled) {
             const { scaledNodes, scaledEdges, scaleAlerts } = performAutoScaling(currentNodes, currentEdges);
             if (scaleAlerts.length > 0) {
@@ -379,39 +788,32 @@ export default function SystemDesignSimulator() {
             }
         }
 
-        // Reset periodic stats
         currentNodes = currentNodes.map(n => ({ ...n, load: 0, rps: 0 }));
 
-        // Distribute Traffic
         const entryNodes = currentNodes.filter(n => n.type === 'CLIENT');
         entryNodes.forEach(client => {
             client.rps = currentTraffic;
             distributeTraffic(client.id, currentTraffic, currentNodes, currentEdges, new Set());
         });
 
-        // Calculate Load & Failures
         currentNodes.forEach(node => {
             if (node.type === 'CLIENT') return;
 
             const config = COMPONENT_TYPES[node.type];
-            // Capacity Multiplier for Vertical Scaling (Defaults to 1)
             const capacityMultiplier = node.capacityMultiplier || 1;
             const capacity = config.capacity * capacityMultiplier;
 
             node.load = (node.rps / capacity) * 100;
 
-            // Random Failure
             if (Math.random() > 0.995 && node.status !== 'crashed') {
                 node.status = 'crashed';
                 newAlerts.push(`${node.type} crashed!`);
             }
 
-            // Recovery
             if (node.status === 'crashed' && Math.random() > 0.8) {
                 node.status = 'healthy';
             }
 
-            // Performance Impact
             if (node.status === 'crashed') {
                 totalErrors += node.rps;
                 node.load = 0;
@@ -429,7 +831,6 @@ export default function SystemDesignSimulator() {
             processedRps += (node.rps - (node.status === 'crashed' ? node.rps : 0));
         });
 
-        // Metrics
         const totalCost = currentNodes.reduce((acc, node) => acc + (COMPONENT_TYPES[node.type].cost * (node.capacityMultiplier || 1)), 0);
         const avgLatency = processedRps > 0 ? totalLatency / currentNodes.length : 0;
         const errorRate = currentTraffic > 0 ? (totalErrors / (currentTraffic * entryNodes.length)) * 100 : 0;
@@ -459,35 +860,26 @@ export default function SystemDesignSimulator() {
         let scaledEdges = [...currentEdges];
         const scaleAlerts = [];
 
-        // Loop through all nodes to check for stress
         for (let i = 0; i < currentNodes.length; i++) {
             const node = currentNodes[i];
             if (node.type === 'CLIENT') continue;
 
-            // THRESHOLD: 85% Load triggers action
             if (node.load > 85) {
-
-                // --- Strategy 1: Compute Nodes (Server, Microservice, API) ---
                 if (['SERVER', 'MICROSERVICE', 'API', 'LB'].includes(node.type)) {
-                    // A. Vertical Scaling (First Resort)
                     if ((node.capacityMultiplier || 1) < 3) {
                         node.capacityMultiplier = (node.capacityMultiplier || 1) + 1;
                         scaleAlerts.push(`Auto-Scale: Vertically Scaled ${node.type} to v${node.capacityMultiplier}`);
-                    }
-                    // B. Horizontal Scaling (Second Resort)
-                    else {
+                    } else {
                         const similarNodes = scaledNodes.filter(n => n.type === node.type);
                         if (similarNodes.length < 12) {
                             const newId = Date.now().toString() + Math.random().toString().substr(2, 4);
-                            // ALIGNMENT FIX: Stack horizontally to right of parent with grid snap
                             const newNode = {
                                 ...node, id: newId,
-                                x: node.x + 80, // Offset horizontally
+                                x: node.x + 80,
                                 y: node.y,
                                 load: 0, status: 'healthy', capacityMultiplier: 1
                             };
 
-                            // Copy connections
                             const incoming = currentEdges.filter(e => e.to === node.id);
                             const outgoing = currentEdges.filter(e => e.from === node.id);
                             incoming.forEach(e => scaledEdges.push({ from: e.from, to: newId }));
@@ -499,9 +891,7 @@ export default function SystemDesignSimulator() {
                     }
                 }
 
-                // --- Strategy 2: Data Nodes (DB, NoSQL) ---
                 if (['DB', 'NOSQL'].includes(node.type)) {
-                    // A. Cache Injection
                     const parents = currentEdges.filter(e => e.to === node.id).map(e => e.from);
                     const fedByCache = parents.some(pid => {
                         const parent = scaledNodes.find(n => n.id === pid);
@@ -510,7 +900,6 @@ export default function SystemDesignSimulator() {
 
                     if (!fedByCache) {
                         const newCacheId = Date.now().toString() + "_cache";
-                        // ALIGNMENT FIX: Place cache to the left
                         const newCache = {
                             id: newCacheId, type: 'CACHE',
                             x: node.x - 100, y: node.y,
@@ -524,15 +913,12 @@ export default function SystemDesignSimulator() {
 
                         scaledNodes.push(newCache);
                         scaleAlerts.push(`Auto-Scale: Injected Redis Cache before ${node.type}`);
-                    }
-                    // B. Read Replica
-                    else {
+                    } else {
                         const newId = Date.now().toString() + "_replica";
-                        // ALIGNMENT FIX: Stack vertically below master
                         const newNode = {
                             ...node, id: newId,
                             x: node.x,
-                            y: node.y + 80, // Offset vertically
+                            y: node.y + 80,
                             load: 0, status: 'healthy', label: `${node.label} (Replica)`
                         };
 
@@ -546,7 +932,6 @@ export default function SystemDesignSimulator() {
             }
         }
 
-        // Cleanup: Scale Down
         if (scaleAlerts.length === 0) {
             const candidates = scaledNodes.filter(n => ['SERVER', 'MICROSERVICE'].includes(n.type) && n.load < 20);
             for (let node of candidates) {
@@ -584,12 +969,9 @@ export default function SystemDesignSimulator() {
                 targetNode.rps += rpsPerChild;
                 if (Math.random() > 0.8) spawnPacket(sourceId, edge.to);
 
-                // --- Traffic Shaping Logic ---
                 let nextRps = rpsPerChild;
 
-                // If target is CACHE, it absorbs most traffic (Hit Rate Simulation)
                 if (targetNode.type === 'CACHE') {
-                    // 85% Cache Hit Rate = Only 15% traffic goes to DB
                     nextRps = rpsPerChild * 0.15;
                 }
 
@@ -645,7 +1027,6 @@ export default function SystemDesignSimulator() {
     };
 
     const handleCanvasMouseDown = (e) => {
-        // Start Panning if not clicking a node/control
         if (connectState.isConnecting) return;
 
         setDragState({
@@ -663,7 +1044,6 @@ export default function SystemDesignSimulator() {
 
     const handleDragMove = (e) => {
         if (dragState.isPanning) {
-            // Panning Logic
             const dx = e.clientX - dragState.startX;
             const dy = e.clientY - dragState.startY;
             setPan({
@@ -672,14 +1052,12 @@ export default function SystemDesignSimulator() {
             });
         }
         else if (dragState.isDragging && dragState.nodeId) {
-            // Node Dragging with Grid Snap
             const dx = (e.clientX - dragState.startX) / zoom;
             const dy = (e.clientY - dragState.startY) / zoom;
 
             const rawX = dragState.initialNodeX + dx;
             const rawY = dragState.initialNodeY + dy;
 
-            // SNAP TO GRID
             const snappedX = Math.round(rawX / GRID_SIZE) * GRID_SIZE;
             const snappedY = Math.round(rawY / GRID_SIZE) * GRID_SIZE;
 
@@ -704,20 +1082,18 @@ export default function SystemDesignSimulator() {
             initialNodeX: 0, initialNodeY: 0,
             initialPanX: 0, initialPanY: 0
         });
-        // De-select immediately upon release (Momentary Switch behavior)
         setSelectedId(null);
     };
 
     const addNode = (type) => {
         const id = Date.now().toString();
-        // Center creation based on Pan
         const centerX = (400 - pan.x) / zoom;
         const centerY = (300 - pan.y) / zoom;
 
         const newNode = {
             id,
             type,
-            x: Math.round(centerX / GRID_SIZE) * GRID_SIZE, // Snap creation too
+            x: Math.round(centerX / GRID_SIZE) * GRID_SIZE,
             y: Math.round(centerY / GRID_SIZE) * GRID_SIZE,
             status: 'healthy',
             load: 0,
@@ -726,7 +1102,6 @@ export default function SystemDesignSimulator() {
             label: COMPONENT_TYPES[type].label
         };
         setNodes([...nodes, newNode]);
-        // Note: We don't select on create anymore to stay consistent with "hold to select"
     };
 
     const deleteNode = (id) => {
@@ -749,7 +1124,6 @@ export default function SystemDesignSimulator() {
             if (!exists) setEdges([...edges, { from: connectState.startNodeId, to: targetId }]);
         }
         setConnectState({ isConnecting: false, startNodeId: null });
-        // Clean up drag and selection even if we released over a node
         handleDragEnd();
     };
 
@@ -759,7 +1133,7 @@ export default function SystemDesignSimulator() {
     };
 
     const loadTemplate = (templateName) => {
-        setPan({ x: 0, y: 0 }); // Reset Pan on template load
+        setPan({ x: 0, y: 0 });
         setZoom(1);
 
         if (templateName === 'NETFLIX') {
@@ -774,13 +1148,13 @@ export default function SystemDesignSimulator() {
         }
         setIsSimulating(false);
         setAlerts([]);
+        setCurrentLayoutId(null);
+        setCurrentLayoutName('Untitled');
     };
 
     const adjustZoom = (delta) => {
         setZoom(prev => Math.min(Math.max(0.5, prev + delta), 2));
     };
-
-    // --- Auto-Recovery Logic ---
 
     const suggestFixes = () => {
         const suggestions = [];
@@ -819,6 +1193,22 @@ export default function SystemDesignSimulator() {
 
     return (
         <div className="flex h-screen w-full bg-slate-950 text-slate-200 overflow-hidden font-sans selection:bg-purple-500/30">
+
+            {/* Save & Load Dialogs */}
+            <SaveDialog 
+                isOpen={showSaveDialog}
+                onClose={() => setShowSaveDialog(false)}
+                onSave={saveLayout}
+                isSaving={isSaving}
+                currentName={currentLayoutName}
+            />
+
+            <LoadDialog 
+                isOpen={showLoadDialog}
+                onClose={() => setShowLoadDialog(false)}
+                onLoad={loadLayout}
+                onDelete={handleDeleteLayout}
+            />
 
             {/* Sidebar */}
             <div className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col shadow-xl z-20">
@@ -878,52 +1268,58 @@ export default function SystemDesignSimulator() {
                 <div className="relative">
                     <Navbar py={2} />
                     <IntroCarousel
-                            storageKey="design_sim_intro_seen"
-                            slides={componentSlides}
-                          />
+                        storageKey="design_sim_intro_seen"
+                        slides={componentSlides}
+                    />
+                    
                     {/* Top Control Bar */}
                     <div className="h-12 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-5 shrink-0 z-40">
 
-                        {/* ================= LEFT CONTROLS ================= */}
-                        <div className="flex items-center gap-4">
+                        {/* LEFT CONTROLS */}
+                        <div className="flex items-center gap-3">
+
+                            {/* Current Workflow Name */}
+                            <div className="flex items-center gap-2 text-sm px-3 py-1.5 bg-slate-800 rounded-md border border-slate-700">
+                                <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                                <span className="font-medium text-slate-300">{currentLayoutName}</span>
+                            </div>
 
                             {/* Run / Stop */}
                             <button
                                 onClick={() => setIsSimulating(!isSimulating)}
                                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors
-                ${isSimulating
+                                    ${isSimulating
                                         ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
                                         : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
                                     }`}
                             >
-                                {isSimulating
-                                    ? <Pause className="w-4 h-4" />
-                                    : <Play className="w-4 h-4" />
-                                }
+                                {isSimulating ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                                 <span>{isSimulating ? 'Stop' : 'Run'}</span>
                             </button>
 
                             {/* Save Button */}
                             <button
-                                onClick={saveLayout}
-                                disabled={isSaving}
-                                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors
-                                ${isSaving
-                                    ? 'bg-slate-800 text-slate-500 cursor-wait'
-                                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
-                                }`}
+                                onClick={() => setShowSaveDialog(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors bg-purple-600 hover:bg-purple-500 text-white"
+                                title="Save Workflow (Ctrl+S)"
                             >
-                                {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                                <Save className="w-4 h-4" />
+                                <span>Save</span>
                             </button>
-                                {/* Load Button */}
-<button
-    onClick={loadLatestLayout}
-    className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700"
-    title="Reload latest save"
->
-    <DownloadCloud className="w-4 h-4" />
-</button>
+
+                            {/* Load Button */}
+                            <button
+                                onClick={() => setShowLoadDialog(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700"
+                                title="Load Workflow (Ctrl+O)"
+                            >
+                                <FolderOpen className="w-4 h-4" />
+                                <span>Load</span>
+                            </button>
+
+                            {/* Divider */}
+                            <div className="h-6 w-px bg-slate-700" />
+
                             {/* Traffic Slider */}
                             <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-md border border-slate-700">
                                 <span className="text-[11px] uppercase font-semibold text-slate-400">
@@ -945,14 +1341,11 @@ export default function SystemDesignSimulator() {
                                 </span>
                             </div>
 
-                            {/* Divider */}
-                            <div className="h-6 w-px bg-slate-700" />
-
                             {/* Auto-Scale */}
                             <button
                                 onClick={() => setIsAutoScale(!isAutoScale)}
                                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold border transition-colors
-                ${isAutoScale
+                                    ${isAutoScale
                                         ? 'bg-blue-600/90 border-blue-500 text-white shadow-[0_0_8px_rgba(37,99,235,0.4)]'
                                         : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
                                     }`}
@@ -965,8 +1358,7 @@ export default function SystemDesignSimulator() {
                             {!isAutoScale && (
                                 <button
                                     onClick={() => setActiveSuggestions(suggestFixes())}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold
-                    bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
                                 >
                                     <Activity className="w-4 h-4" />
                                     Diagnose
@@ -974,7 +1366,7 @@ export default function SystemDesignSimulator() {
                             )}
                         </div>
 
-                        {/* ================= RIGHT METRICS ================= */}
+                        {/* RIGHT METRICS */}
                         <div className="flex items-center gap-6 text-sm">
 
                             <MetricItem
@@ -993,7 +1385,7 @@ export default function SystemDesignSimulator() {
                                 </span>
                                 <span
                                     className={`font-mono font-bold
-                    ${metrics.score > 80
+                                        ${metrics.score > 80
                                             ? 'text-emerald-400'
                                             : metrics.score > 50
                                                 ? 'text-yellow-400'
@@ -1006,7 +1398,7 @@ export default function SystemDesignSimulator() {
                         </div>
                     </div>
 
-                    {/* ✅ ZOOM CONTROLS — FIXED TOP RIGHT */}
+                    {/* ZOOM CONTROLS */}
                     <div className="absolute top-15 right-4 z-50">
                         <div className="flex flex-col space-y-2 bg-slate-900 p-1 rounded-lg border border-slate-700 shadow-xl">
                             <button
@@ -1032,6 +1424,7 @@ export default function SystemDesignSimulator() {
                             <button
                                 onClick={() => setPan({ x: 0, y: 0 })}
                                 className="p-2 hover:bg-slate-700 rounded-md text-slate-300"
+                                title="Reset view"
                             >
                                 <Move className="w-5 h-5" />
                             </button>
@@ -1050,7 +1443,7 @@ export default function SystemDesignSimulator() {
                     style={{
                         backgroundImage: 'radial-gradient(#334155 1px, transparent 1px)',
                         backgroundSize: `${GRID_SIZE * zoom}px ${GRID_SIZE * zoom}px`,
-                        backgroundPosition: `${pan.x}px ${pan.y}px` // Grid moves with Pan
+                        backgroundPosition: `${pan.x}px ${pan.y}px`
                     }}
                 >
                     {/* Simulation Overlay */}
@@ -1083,7 +1476,7 @@ export default function SystemDesignSimulator() {
                             transformOrigin: '0 0',
                             width: '100%',
                             height: '100%',
-                            pointerEvents: 'none' // Pass clicks through to canvas unless hitting a node
+                            pointerEvents: 'none'
                         }}
                     >
                         <div className="w-full h-full relative" style={{ pointerEvents: 'auto' }}>
@@ -1102,7 +1495,6 @@ export default function SystemDesignSimulator() {
                                     const end = nodes.find(n => n.id === edge.to);
                                     return <SimulatorEdge key={i} start={start} end={end} isSimulating={isSimulating} />;
                                 })}
-                                {/* Dragging connection line */}
                                 {connectState.isConnecting && (() => {
                                     const start = nodes.find(n => n.id === connectState.startNodeId);
                                     if (!start || !canvasRef.current) return null;
@@ -1174,7 +1566,6 @@ export default function SystemDesignSimulator() {
                                 </div>
                             )}
 
-                            {/* Extra Info */}
                             {selectedNode.capacityMultiplier > 1 && (
                                 <div className="pt-2 border-t border-slate-700">
                                     <div className="flex justify-between items-center">
