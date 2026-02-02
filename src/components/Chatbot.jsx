@@ -46,9 +46,13 @@ export default function Chatbot() {
 
     setMessages((prev) => [...prev, { role: "user", text: userText }]);
 
+    // --- UPDATED SECTION ---
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+    // -----------------------
+
     try {
       const res = await fetch(
-        "http://localhost:5001/api/chatbot/suggest",
+        `${API_URL}/api/chatbot/suggest`, // Uses dynamic URL
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
