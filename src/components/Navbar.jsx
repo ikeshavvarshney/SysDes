@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Navbar({ isSignedIn, setIsSignedIn, py=4 }) {
+export default function Navbar({ py=4 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsSignedIn(!!token);
+  }, []);
   return (
     <>
       {/* NAVBAR */}
