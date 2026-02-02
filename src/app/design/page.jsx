@@ -4,15 +4,18 @@ import Navbar from '@/components/Navbar';
 import IntroCarousel from '@/components/IntroCarousel';
 import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
 import {
-    Server, Database, Globe, Layers, Shield, Activity,
+    Server, Database, Globe, Layers, Shield, Activity,DownloadCloud,
     ArrowRight, Play, Pause, RefreshCw, AlertTriangle,
     Cpu, HardDrive, Zap, Search, Plus, Trash2,
     HelpCircle, Settings, CheckCircle, XCircle, Share2,
     CloudLightning, Lock, Box, ZoomIn, ZoomOut, Scale,
-    ChevronsUp, Move
+    ChevronsUp, Move, Save // <--- Added Save Icon
 } from 'lucide-react';
 
 // --- Constants & Config ---
+
+// Use Environment variable or default to localhost:5000
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
 const GRID_SIZE = 20;
 
@@ -200,6 +203,7 @@ export default function SystemDesignSimulator() {
     const [selectedId, setSelectedId] = useState(null);
     const [isSimulating, setIsSimulating] = useState(false);
     const [isAutoScale, setIsAutoScale] = useState(false);
+    const [isSaving, setIsSaving] = useState(false); // <--- New State for Saving
 
     // Viewport State
     const [zoom, setZoom] = useState(0.8);
@@ -214,7 +218,7 @@ export default function SystemDesignSimulator() {
     // Interaction State
     const [dragState, setDragState] = useState({
         isDragging: false,
-        isPanning: false, // New Pan state
+        isPanning: false,
         nodeId: null,
         startX: 0,
         startY: 0,
@@ -253,6 +257,84 @@ export default function SystemDesignSimulator() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
+
+    // --- Backend API Interaction ---
+    // --- NEW: Load Layout Logic ---
+
+    const loadLatestLayout = async () => {
+        try {
+            const response = await fetch(`${API_URL}/api/layouts/latest`);
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                const layout = data.data;
+                
+                // 1. Restore State
+                setNodes(layout.nodes || []);
+                setEdges(layout.edges || []);
+                
+                // 2. Restore Viewport
+                if (layout.viewport) {
+                    setPan({ x: layout.viewport.x, y: layout.viewport.y });
+                    setZoom(layout.viewport.zoom);
+                }
+
+                // 3. Restore Config
+                if (layout.config) {
+                    setTrafficLevel(layout.config.trafficLevel);
+                }
+
+                setAlerts(prev => ["✅ Restored previous session", ...prev]);
+            }
+        } catch (error) {
+            console.error("Failed to load layout:", error);
+            // Don't alert here, as it might just be a new user with no history
+        }
+    };
+
+    // --- NEW: Run on Component Mount ---
+    useEffect(() => {
+        loadLatestLayout();
+    }, []); // Empty dependency array = runs once on startup
+    const saveLayout = async () => {
+        setIsSaving(true);
+        const payload = {
+            name: `Design - ${new Date().toLocaleString()}`,
+            nodes,
+            edges,
+            viewport: {
+                x: pan.x,
+                y: pan.y,
+                zoom: zoom
+            },
+            config: {
+                trafficLevel
+            }
+        };
+
+        try {
+            const response = await fetch(`${API_URL}/api/layouts`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setAlerts(prev => ["✅ Layout Saved Successfully!", ...prev]);
+            } else {
+                throw new Error(data.error || "Failed to save");
+            }
+        } catch (error) {
+            setAlerts(prev => [`❌ Save Failed: ${error.message}`, ...prev]);
+            console.error("Save error:", error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     // --- Simulation Logic ---
 
@@ -821,6 +903,27 @@ export default function SystemDesignSimulator() {
                                 <span>{isSimulating ? 'Stop' : 'Run'}</span>
                             </button>
 
+                            {/* Save Button */}
+                            <button
+                                onClick={saveLayout}
+                                disabled={isSaving}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors
+                                ${isSaving
+                                    ? 'bg-slate-800 text-slate-500 cursor-wait'
+                                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
+                                }`}
+                            >
+                                {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                            </button>
+                                {/* Load Button */}
+<button
+    onClick={loadLatestLayout}
+    className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold transition-colors bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700"
+    title="Reload latest save"
+>
+    <DownloadCloud className="w-4 h-4" />
+</button>
                             {/* Traffic Slider */}
                             <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-md border border-slate-700">
                                 <span className="text-[11px] uppercase font-semibold text-slate-400">
