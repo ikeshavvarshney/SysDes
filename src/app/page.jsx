@@ -30,9 +30,12 @@ export default function Home() {
             <Link href="/auth"><button className="px-6 py-3 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition">
               Start Building
             </button></Link>
+            <Link href="https://youtu.be/CTpOBeL7Yn4">
             <button className="px-6 py-3 rounded-lg border border-white/15 hover:border-white/40 transition">
               See How It Breaks
+              
             </button>
+            </Link>
           </div>
         </div>
       </section>

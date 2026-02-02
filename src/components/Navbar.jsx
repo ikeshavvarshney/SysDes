@@ -8,7 +8,7 @@ export default function Navbar({ py=4 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const [isSignedIn, setIsSignedIn] = useState(false);
-
+//sd
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsSignedIn(!!token);
