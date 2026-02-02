@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function IntroCarousel({
   storageKey,
@@ -8,56 +8,64 @@ export default function IntroCarousel({
   slides = [],
   autoSlideInterval = 5000,
 }) {
-  const [visible, setVisible] = useState(true);
+  // ✅ Correct initial visibility (NO FLASH)
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    if (!storageKey) return true;
+    return localStorage.getItem(storageKey) !== "true";
+  });
+
   const [index, setIndex] = useState(0);
   const [fade, setFade] = useState(true);
+  const timeoutRef = useRef(null);
+  const intervalRef = useRef(null);
 
-  // Check localStorage for visibility
-  useEffect(() => {
-    if (storageKey) {
-      const dismissed = localStorage.getItem(storageKey);
-      if (dismissed === "true") {
-        setVisible(false);
-      }
-    }
-  }, [storageKey]);
-  // Auto slide
-  useEffect(() => {
-    if (!visible || slides.length === 0) return;
+  // Cleanup helpers
+  const clearTimers = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+  };
 
-    const timer = setInterval(() => {
+  // Auto slide (safe + stable)
+  useEffect(() => {
+    if (!visible || slides.length <= 1) return;
+
+    intervalRef.current = setInterval(() => {
       setFade(false);
-      setTimeout(() => {
+
+      timeoutRef.current = setTimeout(() => {
         setIndex((i) => (i + 1) % slides.length);
         setFade(true);
       }, 150);
     }, autoSlideInterval);
 
-    return () => clearInterval(timer);
-  }, [visible, slides.length, autoSlideInterval]);
+    return clearTimers;
+  }, [visible, slides, autoSlideInterval]);
 
-  if (!visible || slides.length === 0) return null;
-
+  // Close modal
   const close = () => {
-    if (storageKey) localStorage.setItem(storageKey, "true");
+    if (storageKey) {
+      localStorage.setItem(storageKey, "true");
+    }
+    clearTimers();
     setVisible(false);
   };
 
-  const prev = () => {
+  const goTo = (nextIndex) => {
     setFade(false);
-    setTimeout(() => {
-      setIndex((i) => (i === 0 ? slides.length - 1 : i - 1));
+    timeoutRef.current = setTimeout(() => {
+      setIndex(nextIndex);
       setFade(true);
     }, 150);
   };
 
-  const next = () => {
-    setFade(false);
-    setTimeout(() => {
-      setIndex((i) => (i + 1) % slides.length);
-      setFade(true);
-    }, 150);
-  };
+  const prev = () =>
+    goTo(index === 0 ? slides.length - 1 : index - 1);
+
+  const next = () =>
+    goTo((index + 1) % slides.length);
+
+  if (!visible || slides.length === 0) return null;
 
   const current = slides[index];
 
@@ -73,13 +81,13 @@ export default function IntroCarousel({
             relative w-full max-w-4xl h-[60vh]
             bg-[#050B1E] border border-white/10 rounded-xl shadow-2xl
             flex flex-col overflow-hidden
-            transition-all duration-300 ease-out
           "
         >
           {/* Close */}
           <button
             onClick={close}
             className="absolute top-4 right-4 text-slate-400 hover:text-white transition"
+            aria-label="Close"
           >
             ✕
           </button>
@@ -94,8 +102,9 @@ export default function IntroCarousel({
           {/* Content */}
           <div className="flex-1 flex items-center justify-center px-10 text-center">
             <div
-              className={`max-w-2xl transition-opacity duration-200 ${fade ? "opacity-100" : "opacity-0"
-                }`}
+              className={`max-w-2xl transition-opacity duration-200 ${
+                fade ? "opacity-100" : "opacity-0"
+              }`}
             >
               {current.heading && (
                 <h3 className="text-2xl font-semibold text-emerald-400 mb-3">
@@ -118,37 +127,44 @@ export default function IntroCarousel({
           </div>
 
           {/* Controls */}
-          <button
-            onClick={prev}
-            className="
-              absolute left-4 top-1/2 -translate-y-1/2
-              text-slate-400 hover:text-white text-2xl
-              transition-transform hover:-translate-x-1
-            "
-          >
-            ‹
-          </button>
+          {slides.length > 1 && (
+            <>
+              <button
+                onClick={prev}
+                className="
+                  absolute left-4 top-1/2 -translate-y-1/2
+                  text-slate-400 hover:text-white text-2xl
+                  transition-transform hover:-translate-x-1
+                "
+              >
+                ‹
+              </button>
 
-          <button
-            onClick={next}
-            className="
-              absolute right-4 top-1/2 -translate-y-1/2
-              text-slate-400 hover:text-white text-2xl
-              transition-transform hover:translate-x-1
-            "
-          >
-            ›
-          </button>
+              <button
+                onClick={next}
+                className="
+                  absolute right-4 top-1/2 -translate-y-1/2
+                  text-slate-400 hover:text-white text-2xl
+                  transition-transform hover:translate-x-1
+                "
+              >
+                ›
+              </button>
+            </>
+          )}
 
           {/* Dots */}
           <div className="h-12 flex items-center justify-center gap-2">
             {slides.map((_, i) => (
-              <div
+              <button
                 key={i}
-                className={`h-2 w-2 rounded-full transition-all duration-200 ${i === index
+                onClick={() => goTo(i)}
+                className={`h-2 w-2 rounded-full transition-all duration-200 ${
+                  i === index
                     ? "bg-emerald-400 scale-125"
                     : "bg-white/20"
-                  }`}
+                }`}
+                aria-label={`Slide ${i + 1}`}
               />
             ))}
           </div>
