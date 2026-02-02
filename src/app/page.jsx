@@ -4,23 +4,23 @@ import Link from "next/link";
 import IntroCarousel from "@/components/IntroCarousel";
 
 export default function Home() {
-  const designSlides = [
-  {
-    title: "Build the Architecture",
-    description:
-      "Compose services, databases, queues, and caches. Every connection matters.",
-  },
-  {
-    title: "Simulate Load",
-    description:
-      "Traffic spikes expose weak assumptions. Watch bottlenecks form in real time.",
-  },
-  {
-    title: "Observe Failure",
-    description:
-      "Latency, error rates, and cascading failures behave like production.",
-  },
-];
+    const designSlides = [
+    {
+      title: "Build the Architecture",
+      description:
+        "Compose services, databases, queues, and caches. Every connection matters.",
+    },
+    {
+      title: "Simulate Load",
+      description:
+        "Traffic spikes expose weak assumptions. Watch bottlenecks form in real time.",
+    },
+    {
+      title: "Observe Failure",
+      description:
+        "Latency, error rates, and cascading failures behave like production.",
+    },
+  ];
 
   return (
     <main className="min-h-screen text-slate-200 bg-black">

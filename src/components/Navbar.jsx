@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 
-export default function Navbar({ isSignedIn, setIsSignedIn }) {
+export default function Navbar({ isSignedIn, setIsSignedIn, py=4 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       {/* NAVBAR */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-16 py-4 border-b border-white/10 bg-[#050B1E]/80 backdrop-blur">
+      <header className={`sticky top-0 z-50 flex items-center justify-between px-6 md:px-16 py-${py} border-b border-white/10 bg-[#050B1E]/80 backdrop-blur`}>
 
         {/* Logo */}
         <div className="flex items-center gap-3">

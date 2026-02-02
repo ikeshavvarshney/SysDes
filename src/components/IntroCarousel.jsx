@@ -7,14 +7,14 @@ export default function IntroCarousel({
   slides = [],
   autoSlideInterval = 5000,
 }) {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const [index, setIndex] = useState(0);
 
   // Check first visit
-  useEffect(() => {
-    const seen = localStorage.getItem(storageKey);
-    if (!seen) setVisible(true);
-  }, [storageKey]);
+  // useEffect(() => {
+  //   const seen = localStorage.getItem(storageKey);
+  //   if (!seen) setVisible(true);
+  // }, [storageKey]);
 
   // Auto slide
   useEffect(() => {
