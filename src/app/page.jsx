@@ -27,9 +27,9 @@ export default function Home() {
           </p>
 
           <div className="mt-10 flex flex-wrap gap-4">
-            <button className="px-6 py-3 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition">
+            <Link href="/auth"><button className="px-6 py-3 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition">
               Start Building
-            </button>
+            </button></Link>
             <button className="px-6 py-3 rounded-lg border border-white/15 hover:border-white/40 transition">
               See How It Breaks
             </button>

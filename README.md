@@ -79,8 +79,8 @@ No unnecessary libraries. Every dependency has a purpose.
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/systemsketch.git
-cd systemsketch
+git clone https://github.com/Yash-vs9/SysDes.git
+cd SysDes
 ```
 
 Install dependencies:

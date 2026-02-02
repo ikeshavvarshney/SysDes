@@ -39,10 +39,10 @@ export default function Navbar({ py=4 }) {
         <div className="flex items-center gap-3">
           {!isSignedIn ? (
             <>
-              <Link href="/auth"><button className="text-sm text-slate-400 hover:text-white">
+              <Link href="/auth?mode=login"><button className="text-sm text-slate-400 hover:text-white">
                 Login
               </button></Link>
-              <Link href="/auth"><button className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30">
+              <Link href="/auth?mode=signup"><button className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30">
                 Sign Up
               </button></Link>
             </>
