@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
-// import Navbar from "@/components/Navbar"; // Uncomment if you have this component
 import Navbar from "@/components/Navbar";
+
 export default function AuthPage() {
-  // const router = useRouter(); // Removed Next.js dependency
   const [mode, setMode] = useState("signup"); // signup | login
   const isSignup = mode === "signup";
-  const [isSignIn,setIsSignIn]=useState(false)
+  const [isSignIn, setIsSignIn] = useState(false);
+
   // Form State
   const [formData, setFormData] = useState({
     name: "",
@@ -31,10 +31,15 @@ export default function AuthPage() {
     setLoading(true);
     setError("");
 
-    // Define Endpoints (Ensure your backend is running on this port)
-    // Note: In a real app, use environment variables like process.env.NEXT_PUBLIC_API_URL
-    const BASE_URL = "http://localhost:5001/api/users";
+    // --- UPDATED SECTION ---
+    // 1. Get the base URL from Environment Variables (Client Side)
+    // 2. Fallback to localhost if env var is missing
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+    
+    // 3. Construct the specific endpoint
+    const BASE_URL = `${API_URL}/api/users`;
     const endpoint = isSignup ? `${BASE_URL}/register` : `${BASE_URL}/login`;
+    // -----------------------
 
     try {
       // Prepare payload (Login doesn't need 'name')
@@ -59,8 +64,9 @@ export default function AuthPage() {
       // Success: Store token & user
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-      setIsSignIn(true);      // Redirect (using standard window.location for compatibility)
-      // In a Next.js app, you would use router.push("/dashboard")
+      setIsSignIn(true);      
+      
+      // Redirect
       window.location.href = "/"; 
 
     } catch (err) {
@@ -73,7 +79,7 @@ export default function AuthPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-200 selection:bg-emerald-500/30">
       
-      {/* Background Gradients (Standardized Tailwind) */}
+      {/* Background Gradients */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#050B1E] via-[#081A2F] to-[#120A2A]" />
 
       {/* Animated background strokes */}
@@ -83,8 +89,8 @@ export default function AuthPage() {
         <div className="absolute top-1/3 left-1/2 h-175 w-px bg-blue-400/20 rotate-6 animate-pulse delay-700" />
       </div>
 
-      {/* <Navbar /> */}
       <Navbar isSignedIn={isSignIn} setIsSignedIn={setIsSignIn} py={2}></Navbar>
+      
       <section className="relative z-10 flex items-center justify-center min-h-screen px-6 py-20">
         <div className="w-full max-w-md bg-white/5 border border-white/10 rounded-xl p-8 backdrop-blur shadow-2xl">
 
