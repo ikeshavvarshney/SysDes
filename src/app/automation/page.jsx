@@ -1,17 +1,20 @@
 "use client";
 
+import Navbar from '@/components/Navbar';
+import Chatbot from '@/components/Chatbot';
+import IntroCarousel from '@/components/IntroCarousel';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  Play, 
-  RotateCcw, 
-  Cpu, 
-  Database, 
-  Server, 
-  AlertTriangle, 
-  MessageSquare, 
-  Activity, 
-  GitBranch, 
-  Zap, 
+import {
+  Play,
+  RotateCcw,
+  Cpu,
+  Database,
+  Server,
+  AlertTriangle,
+  MessageSquare,
+  Activity,
+  GitBranch,
+  Zap,
   Sun,
   Moon,
   Trash2,
@@ -67,7 +70,7 @@ const logout = () => {
 // ✅ IMPROVED: Better error handling with detailed logging
 const apiCall = async (endpoint, options = {}) => {
   const token = getAuthToken();
-  
+
   try {
     const config = {
       ...options,
@@ -81,14 +84,14 @@ const apiCall = async (endpoint, options = {}) => {
     console.log('🔵 API Call:', `${API_BASE_URL}${endpoint}`, config);
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    
+
     console.log('🔵 API Response Status:', response.status);
 
     // Handle 401 without redirect
     if (response.status === 401) {
       throw new Error('UNAUTHORIZED');
     }
-    
+
     if (!response.ok) {
       let errorMessage;
       try {
@@ -101,7 +104,7 @@ const apiCall = async (endpoint, options = {}) => {
       }
       throw new Error(errorMessage);
     }
-    
+
     const data = await response.json();
     console.log('✅ API Success:', data);
     return data;
@@ -120,25 +123,25 @@ const workflowAPI = {
     method: 'POST',
     body: JSON.stringify(data),
   }),
-  
+
   getAll: () => apiCall('/workflows'),
-  
+
   getById: (id) => apiCall(`/workflows/${id}`),
-  
+
   update: (id, data) => apiCall(`/workflows/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   }),
-  
+
   delete: (id) => apiCall(`/workflows/${id}`, {
     method: 'DELETE',
   }),
-  
+
   execute: (id, chaosMode) => apiCall(`/workflows/${id}/execute`, {
     method: 'POST',
     body: JSON.stringify({ chaosMode }),
   }),
-  
+
   getHistory: (id) => apiCall(`/workflows/${id}/history`),
 };
 
@@ -225,8 +228,8 @@ const WORKFLOW_TEMPLATES = {
 
 const NODE_CATEGORIES = {
   MODELS: [
-    { 
-      id: 'LLM', 
+    {
+      id: 'LLM',
       label: 'LLM (GPT-4)',
       icon: Cpu,
       color: '#ec4899',
@@ -234,7 +237,7 @@ const NODE_CATEGORIES = {
       outputs: [{ name: 'text', type: 'text' }],
       description: 'Language Model'
     },
-    { 
+    {
       id: 'REACT_AGENT',
       label: 'ReAct Agent',
       icon: Brain,
@@ -243,7 +246,7 @@ const NODE_CATEGORIES = {
       outputs: [{ name: 'text', type: 'text' }],
       description: 'Reasoning Agent'
     },
-    { 
+    {
       id: 'PLANNER',
       label: 'Planner / Router',
       icon: Route,
@@ -254,7 +257,7 @@ const NODE_CATEGORIES = {
     },
   ],
   TOOLS: [
-    { 
+    {
       id: 'WEB_SEARCH',
       label: 'Web Search',
       icon: Globe,
@@ -263,7 +266,7 @@ const NODE_CATEGORIES = {
       outputs: [{ name: 'text', type: 'text' }],
       description: 'Internet Search'
     },
-    { 
+    {
       id: 'PYTHON_INTERPRETER',
       label: 'Python Interpreter',
       icon: Code,
@@ -274,7 +277,7 @@ const NODE_CATEGORIES = {
     },
   ],
   MEMORY: [
-    { 
+    {
       id: 'CHAT_HISTORY',
       label: 'Chat History',
       icon: MessageCircle,
@@ -283,7 +286,7 @@ const NODE_CATEGORIES = {
       outputs: [{ name: 'text', type: 'text' }],
       description: 'Conversation Memory'
     },
-    { 
+    {
       id: 'VECTOR_STORE',
       label: 'Vector Store (RAG)',
       icon: Database,
@@ -294,7 +297,7 @@ const NODE_CATEGORIES = {
     },
   ],
   OUTPUTS: [
-    { 
+    {
       id: 'CHAT_INTERFACE',
       label: 'Chat Interface',
       icon: MessageSquare,
@@ -305,7 +308,7 @@ const NODE_CATEGORIES = {
     },
   ],
   INPUTS: [
-    { 
+    {
       id: 'USER_PROMPT',
       label: 'User Prompt',
       icon: MessageSquare,
@@ -334,6 +337,56 @@ const NODE_CATEGORIES = {
     },
   ]
 };
+const toolSlides = [
+  {
+    title: "Web Search",
+    description:
+      "Fetches real-time or external information beyond the model’s training data. Used when answers require freshness, verification, or public knowledge lookup.",
+  },
+  {
+    title: "Python Interpreter",
+    description:
+      "Executes code for calculations, data analysis, and logic-heavy tasks. Ensures deterministic outputs where pure language reasoning is unreliable.",
+  },
+  {
+    title: "LLM (GPT-4)",
+    description:
+      "Core language model responsible for understanding input and generating responses. Handles reasoning, synthesis, and natural language generation but relies on external tools and memory for grounding.",
+  },
+  {
+    title: "ReAct Agent",
+    description:
+      "Combines reasoning and action in an iterative loop. Decides when to think, when to call tools, and how to integrate results back into the reasoning process.",
+  },
+  {
+    title: "Planner / Router",
+    description:
+      "Acts as a decision-making layer that routes requests to the correct model or tool. Breaks complex tasks into steps and determines execution order.",
+  },
+];
+const inputOutputSlides = [
+  {
+    title: "User Prompt",
+    description:
+      "Primary entry point where the user expresses intent. Drives the entire execution flow of the system.",
+  },
+  {
+    title: "System Instructions",
+    description:
+      "Defines global behavior, constraints, and tone. Overrides user intent when safety, policy, or structure must be enforced.",
+  },
+  {
+    title: "Document Input",
+    description:
+      "Allows users to inject external files into the system. Commonly used as source material for retrieval, analysis, or summarization.",
+  },
+  {
+    title: "Chat Interface",
+    description:
+      "Final presentation layer where responses are delivered to the user. Reflects the combined output of models, tools, and memory.",
+  },
+];
+
 
 const NODE_TYPES = Object.values(NODE_CATEGORIES).flat().reduce((acc, node) => {
   acc[node.id] = node;
@@ -387,11 +440,11 @@ const LoginModal = ({ onClose }) => {
           <AlertCircle size={32} className="text-red-400" />
           <h3 className="text-xl font-bold text-red-400">Session Expired</h3>
         </div>
-        
+
         <p className="text-gray-300 mb-6">
           Your session has expired. Please log in again to continue.
         </p>
-        
+
         <div className="flex gap-3">
           <button
             onClick={() => {
@@ -420,9 +473,9 @@ const LoginModal = ({ onClose }) => {
 const ConnectionPort = ({ type, position, portData, onMouseDown, onMouseUp, isConnecting }) => {
   const isInput = type === 'target';
   const positionClass = position === 'left' ? '-left-2.5' : '-right-2.5';
-  
+
   return (
-    <div 
+    <div
       className={`absolute ${positionClass} top-1/2 -translate-y-1/2 flex items-center gap-1 z-30 group`}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
@@ -432,12 +485,11 @@ const ConnectionPort = ({ type, position, portData, onMouseDown, onMouseUp, isCo
           {portData.name}
         </span>
       )}
-      <div 
-        className={`w-3.5 h-3.5 rounded-full border-2 cursor-crosshair transition-all ${
-          isInput 
-            ? `bg-gray-900 border-purple-500 hover:border-pink-400 hover:scale-125 ${isConnecting ? 'ring-2 ring-pink-500 scale-125 animate-pulse' : ''}` 
+      <div
+        className={`w-3.5 h-3.5 rounded-full border-2 cursor-crosshair transition-all ${isInput
+            ? `bg-gray-900 border-purple-500 hover:border-pink-400 hover:scale-125 ${isConnecting ? 'ring-2 ring-pink-500 scale-125 animate-pulse' : ''}`
             : 'bg-gradient-to-br from-pink-500 to-purple-500 border-pink-300 hover:scale-125 shadow-lg shadow-pink-500/50'
-        }`}
+          }`}
         title={isInput ? 'Drop to connect' : 'Drag to connect'}
       />
       {!isInput && portData && (
@@ -457,16 +509,14 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
   if (!nodeType) return null;
 
   const recentLog = logs.find(l => l.nodeId === node.id && Date.now() - l.timestamp < 3000);
-  
+
   return (
     <div
-      className={`absolute w-64 rounded-xl border-2 bg-gradient-to-br from-purple-950/90 via-gray-900/90 to-pink-950/90 backdrop-blur-sm transition-all duration-200 group ${
-        isDragging ? 'cursor-grabbing scale-105 z-50 shadow-2xl shadow-purple-500/30' : 'cursor-grab hover:shadow-xl hover:shadow-purple-500/20'
-      } ${node.status === 'running' ? 'ring-2 ring-pink-500 shadow-pink-500/50 scale-105' : ''} ${
-        node.status === 'error' ? 'ring-2 ring-red-500 shadow-red-500/50 animate-shake' : ''
-      }`}
-      style={{ 
-        left: node.x, 
+      className={`absolute w-64 rounded-xl border-2 bg-gradient-to-br from-purple-950/90 via-gray-900/90 to-pink-950/90 backdrop-blur-sm transition-all duration-200 group ${isDragging ? 'cursor-grabbing scale-105 z-50 shadow-2xl shadow-purple-500/30' : 'cursor-grab hover:shadow-xl hover:shadow-purple-500/20'
+        } ${node.status === 'running' ? 'ring-2 ring-pink-500 shadow-pink-500/50 scale-105' : ''} ${node.status === 'error' ? 'ring-2 ring-red-500 shadow-red-500/50 animate-shake' : ''
+        }`}
+      style={{
+        left: node.x,
         top: node.y,
         borderColor: nodeType.color + '80',
       }}
@@ -477,7 +527,7 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
     >
       {/* Input Port */}
       {nodeType.inputs && nodeType.inputs.length > 0 && nodeType.inputs[0].name !== 'none' && (
-        <ConnectionPort 
+        <ConnectionPort
           type="target"
           position="left"
           portData={nodeType.inputs[0]}
@@ -491,7 +541,7 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
 
       {/* Output Port */}
       {nodeType.outputs && nodeType.outputs.length > 0 && (
-        <ConnectionPort 
+        <ConnectionPort
           type="source"
           position="right"
           portData={nodeType.outputs[0]}
@@ -506,12 +556,11 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
       {/* Status Indicator */}
       {node.status !== 'idle' && (
         <div className="absolute -top-1.5 -right-1.5 z-20">
-          <div className={`w-4 h-4 rounded-full border-2 border-gray-900 ${
-            node.status === 'running' ? 'bg-pink-500 animate-pulse shadow-lg shadow-pink-500/50' :
-            node.status === 'success' ? 'bg-emerald-500 shadow-lg shadow-emerald-500/50' :
-            node.status === 'error' ? 'bg-red-500 shadow-lg shadow-red-500/50' :
-            'bg-gray-500'
-          }`} />
+          <div className={`w-4 h-4 rounded-full border-2 border-gray-900 ${node.status === 'running' ? 'bg-pink-500 animate-pulse shadow-lg shadow-pink-500/50' :
+              node.status === 'success' ? 'bg-emerald-500 shadow-lg shadow-emerald-500/50' :
+                node.status === 'error' ? 'bg-red-500 shadow-lg shadow-red-500/50' :
+                  'bg-gray-500'
+            }`} />
         </div>
       )}
 
@@ -529,9 +578,9 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
       <div className="p-3">
         {/* Header */}
         <div className="flex items-center gap-2 mb-2">
-          <div 
+          <div
             className="p-2 rounded-lg shadow-lg"
-            style={{ 
+            style={{
               backgroundColor: nodeType.color + '30',
               boxShadow: `0 0 20px ${nodeType.color}40`
             }}
@@ -599,9 +648,9 @@ const SidebarSection = ({ title, items, onDragStart }) => (
           onDragStart={(e) => onDragStart(e, item.id)}
           className="flex items-center gap-2 p-2 rounded-lg hover:bg-purple-900/20 cursor-grab active:cursor-grabbing transition-all border border-transparent hover:border-purple-700/50 hover:shadow-lg hover:shadow-purple-500/10"
         >
-          <div 
+          <div
             className="p-1.5 rounded-md shadow-md"
-            style={{ 
+            style={{
               backgroundColor: item.color + '30',
               boxShadow: `0 0 15px ${item.color}20`
             }}
@@ -634,19 +683,19 @@ export default function AIWorkflowAutomation() {
   const [logs, setLogs] = useState([]);
   const [simState, setSimState] = useState('idle');
   const [chaosMode, setChaosMode] = useState(false);
-  
+
   // Backend State
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [savedWorkflows, setSavedWorkflows] = useState([]);
   const [showLoadMenu, setShowLoadMenu] = useState(false);
-  
+
   // Auth UI State
   const [showLoginModal, setShowLoginModal] = useState(false);
-  
+
   // UI State
   const [toast, setToast] = useState(null);
-  
+
   // Interaction states
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -656,7 +705,7 @@ export default function AIWorkflowAutomation() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [hoveredEdge, setHoveredEdge] = useState(null);
   const [activePackets, setActivePackets] = useState([]);
-  
+
   const dragOffset = useRef({ x: 0, y: 0 });
   const panStart = useRef({ x: 0, y: 0 });
   const containerRef = useRef(null);
@@ -690,16 +739,16 @@ export default function AIWorkflowAutomation() {
 
   const runClientSideSimulation = async () => {
     if (simState === 'running') return;
-    
+
     cancelSimulation.current = false;
     setSimState('running');
     setLogs([]);
     setNodes(prev => prev.map(n => ({ ...n, status: 'idle' })));
     setActivePackets([]);
-    
+
     try {
       addLog('system', '🚀 Running local simulation...', 'info');
-      
+
       // Success messages for each node type
       const successMessages = {
         'USER_PROMPT': '✓ User input captured',
@@ -714,7 +763,7 @@ export default function AIWorkflowAutomation() {
         'SYSTEM_INSTRUCTIONS': '✓ System prompt loaded',
         'DOCUMENT_INPUT': '✓ Document processed'
       };
-      
+
       const failureMessages = {
         'USER_PROMPT': '✗ Invalid input format detected',
         'LLM': '✗ LLM API timeout - rate limit exceeded',
@@ -728,17 +777,17 @@ export default function AIWorkflowAutomation() {
         'SYSTEM_INSTRUCTIONS': '✗ Invalid system prompt',
         'DOCUMENT_INPUT': '✗ Document parsing failed'
       };
-      
+
       // Find entry nodes
-      const entryNodes = nodes.filter(node => 
+      const entryNodes = nodes.filter(node =>
         !edges.some(edge => edge.target === node.id)
       );
-      
+
       // Simulate execution
       for (const node of entryNodes) {
         await processNodeSimulation(node.id, successMessages, failureMessages);
       }
-      
+
       if (!cancelSimulation.current) {
         addLog('system', '✅ Simulation completed successfully!', 'success');
         showToast('Simulation completed!', 'success');
@@ -755,37 +804,37 @@ export default function AIWorkflowAutomation() {
   const processNodeSimulation = async (nodeId, successMessages, failureMessages) => {
     const node = nodes.find(n => n.id === nodeId);
     if (!node) return;
-    
+
     await sleep(300);
     if (cancelSimulation.current) return;
-    
+
     // Set running
-    setNodes(prev => prev.map(n => 
+    setNodes(prev => prev.map(n =>
       n.id === nodeId ? { ...n, status: 'running' } : n
     ));
-    
+
     await sleep(500);
     if (cancelSimulation.current) return;
-    
+
     // Chaos mode: 30% chance of failure
     if (chaosMode && Math.random() > 0.7) {
-      setNodes(prev => prev.map(n => 
+      setNodes(prev => prev.map(n =>
         n.id === nodeId ? { ...n, status: 'error' } : n
       ));
       addLog(nodeId, failureMessages[node.type] || '✗ Operation failed', 'error');
-      
+
       await sleep(500);
       addLog(nodeId, '🔧 Automatic recovery: System self-healed.', 'info');
-      setNodes(prev => prev.map(n => 
+      setNodes(prev => prev.map(n =>
         n.id === nodeId ? { ...n, status: 'success' } : n
       ));
     } else {
-      setNodes(prev => prev.map(n => 
+      setNodes(prev => prev.map(n =>
         n.id === nodeId ? { ...n, status: 'success' } : n
       ));
       addLog(nodeId, successMessages[node.type] || '✓ Processing complete', 'success');
     }
-    
+
     // Process connected nodes
     const outgoingEdges = edges.filter(edge => edge.source === nodeId);
     for (const edge of outgoingEdges) {
@@ -841,14 +890,14 @@ export default function AIWorkflowAutomation() {
       }
     } catch (error) {
       console.error('💥 Save failed:', error);
-      
+
       if (handleAuthError(error)) return;
-      
+
       // Show detailed error
       const errorMsg = error.message || 'Unknown error';
       addLog('system', `✗ Save failed: ${errorMsg}`, 'error');
       showToast(`Save failed: ${errorMsg}`, 'error');
-      
+
       // Show helpful message if backend is down
       if (errorMsg.includes('fetch') || errorMsg.includes('Network')) {
         showToast('Backend server may be offline. Check console for details.', 'warning');
@@ -869,9 +918,9 @@ export default function AIWorkflowAutomation() {
       }
     } catch (error) {
       console.error('Load failed:', error);
-      
+
       if (handleAuthError(error)) return;
-      
+
       const errorMsg = error.message || 'Unknown error';
       addLog('system', `✗ Failed to load workflows: ${errorMsg}`, 'error');
       showToast(`Load failed: ${errorMsg}`, 'error');
@@ -894,9 +943,9 @@ export default function AIWorkflowAutomation() {
       showToast(`Loaded: ${workflow.name}`, 'success');
     } catch (error) {
       console.error('Load failed:', error);
-      
+
       if (handleAuthError(error)) return;
-      
+
       addLog('system', `✗ Failed to load workflow: ${error.message}`, 'error');
       showToast(`Failed to load: ${error.message}`, 'error');
     } finally {
@@ -906,21 +955,21 @@ export default function AIWorkflowAutomation() {
 
   const deleteWorkflow = async (workflowId) => {
     if (!confirm('Are you sure you want to delete this workflow?')) return;
-    
+
     try {
       await workflowAPI.delete(workflowId);
       setSavedWorkflows(prev => prev.filter(w => w._id !== workflowId));
       showToast('Workflow deleted', 'success');
-      
+
       if (currentWorkflowId === workflowId) {
         loadTemplate('free-play');
         setCurrentWorkflowId(null);
       }
     } catch (error) {
       console.error('Delete failed:', error);
-      
+
       if (handleAuthError(error)) return;
-      
+
       showToast(`Delete failed: ${error.message}`, 'error');
     }
   };
@@ -1004,9 +1053,9 @@ export default function AIWorkflowAutomation() {
 
   const handlePortMouseDown = (nodeId) => {
     const center = getNodeCenter(nodeId);
-    setConnectingDrag({ 
-      sourceId: nodeId, 
-      startPos: { x: center.x, y: center.y } 
+    setConnectingDrag({
+      sourceId: nodeId,
+      startPos: { x: center.x, y: center.y }
     });
   };
 
@@ -1063,8 +1112,8 @@ export default function AIWorkflowAutomation() {
         y: e.clientY - panStart.current.y
       });
     } else if (draggingId) {
-      setNodes(prev => prev.map(n => 
-        n.id === draggingId 
+      setNodes(prev => prev.map(n =>
+        n.id === draggingId
           ? { ...n, x: pos.x - dragOffset.current.x, y: pos.y - dragOffset.current.y }
           : n
       ));
@@ -1084,7 +1133,7 @@ export default function AIWorkflowAutomation() {
   const handleDrop = (e) => {
     e.preventDefault();
     const nodeTypeId = e.dataTransfer.getData('nodeType');
-    
+
     if (nodeTypeId && NODE_TYPES[nodeTypeId]) {
       const pos = getClientOffset(e);
       const newNode = {
@@ -1128,8 +1177,8 @@ export default function AIWorkflowAutomation() {
     const p2 = { x: t.x - controlOffset, y: t.y };
     const tt = packet.progress;
     return {
-      x: Math.pow(1-tt,3)*p0.x + 3*Math.pow(1-tt,2)*tt*p1.x + 3*(1-tt)*Math.pow(tt,2)*p2.x + Math.pow(tt,3)*p3.x,
-      y: Math.pow(1-tt,3)*p0.y + 3*Math.pow(1-tt,2)*tt*p1.y + 3*(1-tt)*Math.pow(tt,2)*p2.y + Math.pow(tt,3)*p3.y
+      x: Math.pow(1 - tt, 3) * p0.x + 3 * Math.pow(1 - tt, 2) * tt * p1.x + 3 * (1 - tt) * Math.pow(tt, 2) * p2.x + Math.pow(tt, 3) * p3.x,
+      y: Math.pow(1 - tt, 3) * p0.y + 3 * Math.pow(1 - tt, 2) * tt * p1.y + 3 * (1 - tt) * Math.pow(tt, 2) * p2.y + Math.pow(tt, 3) * p3.y
     };
   };
 
@@ -1141,10 +1190,10 @@ export default function AIWorkflowAutomation() {
     <div className="flex flex-col h-screen w-full bg-[#0a0118] text-gray-100 overflow-hidden font-sans">
       {/* Toast Notifications */}
       {toast && (
-        <Toast 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast(null)} 
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
 
@@ -1153,6 +1202,7 @@ export default function AIWorkflowAutomation() {
         <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
 
+      <Navbar py={2} />
       {/* Top Bar */}
       <div className="h-14 bg-gradient-to-r from-[#150528] to-[#1a0a2e] border-b border-purple-900/50 flex items-center justify-between px-4 z-20 shadow-xl shadow-purple-900/20">
         <div className="flex items-center gap-4">
@@ -1160,9 +1210,9 @@ export default function AIWorkflowAutomation() {
             <div className="p-1.5 rounded-lg bg-gradient-to-br from-pink-600 to-purple-600 shadow-lg shadow-pink-500/30">
               <Zap className="text-white" size={18} />
             </div>
-            <span className="font-bold text-lg bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">AI Workflow Automation</span>
+            <span className="font-bold text-lg bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text ">Automation</span>
           </div>
-          
+
           {/* Workflow Name Input */}
           <input
             type="text"
@@ -1222,11 +1272,10 @@ export default function AIWorkflowAutomation() {
           {/* Chaos Mode */}
           <button
             onClick={() => setChaosMode(!chaosMode)}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium transition-all shadow-lg ${
-              chaosMode
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium transition-all shadow-lg ${chaosMode
                 ? 'bg-gradient-to-r from-orange-600 to-red-600 ring-2 ring-red-500'
                 : 'bg-purple-950/50 border border-purple-700/50 text-purple-300 hover:bg-purple-900/50'
-            }`}
+              }`}
           >
             <AlertTriangle size={16} />
             {chaosMode ? 'Chaos ON' : 'Chaos Mode'}
@@ -1237,11 +1286,10 @@ export default function AIWorkflowAutomation() {
             onClick={simState === 'running' ? stopSimulation : runClientSideSimulation}
             disabled={nodes.length === 0}
             title={nodes.length === 0 ? 'Add nodes first' : 'Run simulation (client-side)'}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${
-              simState === 'running'
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${simState === 'running'
                 ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500'
                 : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500'
-            }`}
+              }`}
           >
             {simState === 'running' ? (
               <>
@@ -1277,7 +1325,7 @@ export default function AIWorkflowAutomation() {
                 <X size={20} />
               </button>
             </div>
-            
+
             {savedWorkflows.length === 0 ? (
               <div className="text-center py-12">
                 <FolderOpen size={48} className="mx-auto mb-4 text-purple-600" />
@@ -1330,7 +1378,7 @@ export default function AIWorkflowAutomation() {
             <SidebarSection title="MEMORY" items={NODE_CATEGORIES.MEMORY} onDragStart={handleSidebarDragStart} />
             <SidebarSection title="OUTPUTS" items={NODE_CATEGORIES.OUTPUTS} onDragStart={handleSidebarDragStart} />
           </div>
-          
+
           {/* Sidebar Footer */}
           <div className="p-3 border-t border-purple-900/30 space-y-2">
             <div className="text-[10px] text-purple-400">
@@ -1392,8 +1440,8 @@ export default function AIWorkflowAutomation() {
                     <polygon points="0 0, 10 5, 0 10" fill="#ec4899" />
                   </marker>
                   <filter id="glow">
-                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                    <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                    <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
                   </filter>
                 </defs>
 
@@ -1410,12 +1458,12 @@ export default function AIWorkflowAutomation() {
 
                 {/* Drag Connection Preview */}
                 {connectingDrag && (
-                  <path 
-                    d={`M ${connectingDrag.startPos.x} ${connectingDrag.startPos.y} C ${connectingDrag.startPos.x + 50} ${connectingDrag.startPos.y}, ${mousePos.x - 50} ${mousePos.y}, ${mousePos.x} ${mousePos.y}`} 
-                    stroke="#ec4899" 
-                    strokeWidth="2" 
+                  <path
+                    d={`M ${connectingDrag.startPos.x} ${connectingDrag.startPos.y} C ${connectingDrag.startPos.x + 50} ${connectingDrag.startPos.y}, ${mousePos.x - 50} ${mousePos.y}, ${mousePos.x} ${mousePos.y}`}
+                    stroke="#ec4899"
+                    strokeWidth="2"
                     strokeDasharray="5,5"
-                    fill="none" 
+                    fill="none"
                     markerEnd="url(#arrowhead)"
                   />
                 )}
@@ -1467,6 +1515,17 @@ export default function AIWorkflowAutomation() {
             </div>
           </div>
 
+          <Chatbot></Chatbot>
+          <IntroCarousel
+            storageKey="automation_sim_intro_seen1"
+            heading="Different Tools for Automation"
+            slides={toolSlides}
+          />
+          <IntroCarousel
+            storageKey="automation_sim_intro_seen2"
+            heading="Different Tools for Input/Output"
+            slides={inputOutputSlides}
+          />
           {/* Console */}
           <div className="h-40 bg-gradient-to-b from-[#150528] to-[#0a0118] border-t border-purple-900/50 flex flex-col shadow-xl">
             <div className="h-8 border-b border-purple-900/30 flex items-center px-4 justify-between">
@@ -1482,13 +1541,12 @@ export default function AIWorkflowAutomation() {
                 logs.map(log => (
                   <div key={log.id} className="flex gap-2 items-start">
                     <span className="text-purple-600 shrink-0">{new Date(log.timestamp).toLocaleTimeString()}</span>
-                    <span className={`${
-                      log.type === 'error' ? 'text-red-400 font-semibold' : 
-                      log.type === 'success' ? 'text-emerald-400' : 
-                      log.type === 'info' ? 'text-blue-400' : 
-                      log.type === 'warning' ? 'text-yellow-400' :
-                      'text-purple-300'
-                    }`}>
+                    <span className={`${log.type === 'error' ? 'text-red-400 font-semibold' :
+                        log.type === 'success' ? 'text-emerald-400' :
+                          log.type === 'info' ? 'text-blue-400' :
+                            log.type === 'warning' ? 'text-yellow-400' :
+                              'text-purple-300'
+                      }`}>
                       {log.message}
                     </span>
                   </div>

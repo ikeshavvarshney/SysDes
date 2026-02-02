@@ -889,17 +889,17 @@ export default function CyberSecuritySim() {
     <div className="flex h-screen w-full text-sm overflow-hidden" style={{ background: '#0a0e1a', color: '#cbd5e1', fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace" }}>
 
       <IntroCarousel
-        storageKey="security_sim_intro_seen"
+        storageKey="security_sim_intro_seen1"
         heading="Types of Countermeasures"
         slides={countermeasureSlides}
       />
       <IntroCarousel
-        storageKey="security_sim_intro_seen"
+        storageKey="security_sim_intro_seen2"
         heading="Types of Cyber Attacks"
         slides={attackSlides}
       />
       <IntroCarousel
-        storageKey="security_sim_intro_seen"
+        storageKey="security_sim_intro_seen3"
         heading="Security Components"
         slides={securitySlides}
       />

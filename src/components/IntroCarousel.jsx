@@ -12,6 +12,15 @@ export default function IntroCarousel({
   const [index, setIndex] = useState(0);
   const [fade, setFade] = useState(true);
 
+  // Check localStorage for visibility
+  useEffect(() => {
+    if (storageKey) {
+      const dismissed = localStorage.getItem(storageKey);
+      if (dismissed === "true") {
+        setVisible(false);
+      }
+    }
+  }, [storageKey]);
   // Auto slide
   useEffect(() => {
     if (!visible || slides.length === 0) return;
@@ -85,9 +94,8 @@ export default function IntroCarousel({
           {/* Content */}
           <div className="flex-1 flex items-center justify-center px-10 text-center">
             <div
-              className={`max-w-2xl transition-opacity duration-200 ${
-                fade ? "opacity-100" : "opacity-0"
-              }`}
+              className={`max-w-2xl transition-opacity duration-200 ${fade ? "opacity-100" : "opacity-0"
+                }`}
             >
               {current.heading && (
                 <h3 className="text-2xl font-semibold text-emerald-400 mb-3">
@@ -137,11 +145,10 @@ export default function IntroCarousel({
             {slides.map((_, i) => (
               <div
                 key={i}
-                className={`h-2 w-2 rounded-full transition-all duration-200 ${
-                  i === index
+                className={`h-2 w-2 rounded-full transition-all duration-200 ${i === index
                     ? "bg-emerald-400 scale-125"
                     : "bg-white/20"
-                }`}
+                  }`}
               />
             ))}
           </div>
