@@ -2,6 +2,25 @@
 
 import { useState } from "react";
 
+// Converts Gemini text into clean bullet points
+const formatBotText = (text) => {
+    if (!text) return [];
+
+    // Replace newlines, then split by bullet markers
+    const points = text
+        .replace(/\n/g, " ")
+        .split(/[*•-]\s+/)
+        .map(p => p.trim())
+        .filter(p => p.length > 0);
+
+    // If no bullets detected, return as single paragraph
+    if (points.length <= 1) {
+        return [text];
+    }
+
+    return points;
+};
+
 export default function Chatbot() {
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState([
@@ -66,48 +85,28 @@ export default function Chatbot() {
                     <div className="flex-1 px-4 py-3 space-y-3 overflow-y-auto text-sm">
                         {messages.map((msg, i) => (
                             <div key={i} className="space-y-2">
-                                {/* Chat bubble */}
-                                <div
-                                    className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${msg.role === "user"
-                                            ? "ml-auto bg-emerald-500/20 text-emerald-300"
-                                            : "bg-white/5 text-slate-300"
-                                        }`}
-                                >
-                                    {msg.text}
-                                </div>
 
-                                {/* Suggestions (bot only) */}
-                                {msg.role === "bot" && msg.suggestions?.length > 0 && (
-                                    <div className="space-y-2 pl-1">
-                                        {msg.suggestions.map((s, idx) => (
-                                            <div
-                                                key={idx}
-                                                className="border border-white/10 bg-black/30 rounded-lg p-3 text-xs flex justify-between items-start hover:border-emerald-400/40 transition"
-                                            >
-                                                <div>
-                                                    <p className="font-medium text-slate-200">
-                                                        {s.component}
-                                                    </p>
-                                                    <p className="text-slate-400 mt-1">
-                                                        {s.reason}
-                                                    </p>
-                                                </div>
+                                {/* USER MESSAGE */}
+                                {msg.role === "user" && (
+                                    <div className="ml-auto max-w-[80%] px-3 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 text-sm">
+                                        {msg.text}
+                                    </div>
+                                )}
 
-                                                <button
-                                                    className="text-emerald-400 text-xs hover:underline"
-                                                    onClick={() => {
-                                                        console.log("ADD COMPONENT:", s.component);
-                                                    }}
-                                                >
-                                                    Add
-                                                </button>
+                                {/* BOT MESSAGE */}
+                                {msg.role === "bot" && (
+                                    <div className="max-w-[80%] px-3 py-2 rounded-lg bg-white/5 text-slate-300 text-sm space-y-2">
+                                        {formatBotText(msg.text).map((point, idx) => (
+                                            <div key={idx} className="flex gap-2">
+                                                <span className="text-emerald-400">•</span>
+                                                <span>{point}</span>
                                             </div>
                                         ))}
                                     </div>
                                 )}
+
                             </div>
                         ))}
-
                     </div>
 
                     {/* Input */}
