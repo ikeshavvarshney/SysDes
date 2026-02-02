@@ -418,7 +418,7 @@ const Toast = ({ message, type, onClose }) => {
   };
 
   return (
-    <div className={`fixed top-4 right-4 z-[100] flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r ${colors[type]} text-white shadow-2xl animate-slide-in`}>
+    <div className={`fixed top-4 right-4 z-100 flex items-center gap-3 px-4 py-3 rounded-lg bg-linear-to-r ${colors[type]} text-white shadow-2xl animate-slide-in`}>
       {icons[type]}
       <span className="font-medium">{message}</span>
       <button onClick={onClose} className="ml-2 hover:opacity-70">
@@ -434,8 +434,8 @@ const Toast = ({ message, type, onClose }) => {
 
 const LoginModal = ({ onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-[#1a0a2e] to-[#0a0118] border-2 border-red-500 rounded-xl p-8 w-[400px] shadow-2xl">
+    <div className="fixed inset-0 bg-black/80 z-200 flex items-center justify-center backdrop-blur-sm">
+      <div className="bg-linear-to-br from-[#1a0a2e] to-[#0a0118] border-2 border-red-500 rounded-xl p-8 w-100 shadow-2xl">
         <div className="flex items-center gap-3 mb-6">
           <AlertCircle size={32} className="text-red-400" />
           <h3 className="text-xl font-bold text-red-400">Session Expired</h3>
@@ -450,7 +450,7 @@ const LoginModal = ({ onClose }) => {
             onClick={() => {
               window.location.href = '/auth';
             }}
-            className="flex-1 px-4 py-2.5 rounded-lg font-medium bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 transition-all"
+            className="flex-1 px-4 py-2.5 rounded-lg font-medium bg-linear-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 transition-all"
           >
             Go to Login
           </button>
@@ -488,7 +488,7 @@ const ConnectionPort = ({ type, position, portData, onMouseDown, onMouseUp, isCo
       <div
         className={`w-3.5 h-3.5 rounded-full border-2 cursor-crosshair transition-all ${isInput
             ? `bg-gray-900 border-purple-500 hover:border-pink-400 hover:scale-125 ${isConnecting ? 'ring-2 ring-pink-500 scale-125 animate-pulse' : ''}`
-            : 'bg-gradient-to-br from-pink-500 to-purple-500 border-pink-300 hover:scale-125 shadow-lg shadow-pink-500/50'
+            : 'bg-linear-to-br from-pink-500 to-purple-500 border-pink-300 hover:scale-125 shadow-lg shadow-pink-500/50'
           }`}
         title={isInput ? 'Drop to connect' : 'Drag to connect'}
       />
@@ -512,7 +512,7 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
 
   return (
     <div
-      className={`absolute w-64 rounded-xl border-2 bg-gradient-to-br from-purple-950/90 via-gray-900/90 to-pink-950/90 backdrop-blur-sm transition-all duration-200 group ${isDragging ? 'cursor-grabbing scale-105 z-50 shadow-2xl shadow-purple-500/30' : 'cursor-grab hover:shadow-xl hover:shadow-purple-500/20'
+      className={`absolute w-64 rounded-xl border-2 bg-linear-to-br from-purple-950/90 via-gray-900/90 to-pink-950/90 backdrop-blur-sm transition-all duration-200 group ${isDragging ? 'cursor-grabbing scale-105 z-50 shadow-2xl shadow-purple-500/30' : 'cursor-grab hover:shadow-xl hover:shadow-purple-500/20'
         } ${node.status === 'running' ? 'ring-2 ring-pink-500 shadow-pink-500/50 scale-105' : ''} ${node.status === 'error' ? 'ring-2 ring-red-500 shadow-red-500/50 animate-shake' : ''
         }`}
       style={{
@@ -570,7 +570,7 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
           e.stopPropagation();
           onDelete(node.id);
         }}
-        className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-gradient-to-br from-red-500 to-pink-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20 hover:scale-110 shadow-lg"
+        className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-linear-to-br from-red-500 to-pink-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-20 hover:scale-110 shadow-lg"
       >
         <X size={12} />
       </button>
@@ -614,7 +614,7 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
         {/* Progress Bar for Running State */}
         {node.status === 'running' && (
           <div className="mt-2 h-1.5 bg-gray-800 rounded-full overflow-hidden shadow-inner">
-            <div className="h-full bg-gradient-to-r from-pink-500 to-purple-500 animate-pulse shadow-lg" style={{ width: '60%' }} />
+            <div className="h-full bg-linear-to-r from-pink-500 to-purple-500 animate-pulse shadow-lg" style={{ width: '60%' }} />
           </div>
         )}
       </div>
@@ -622,7 +622,7 @@ const WorkflowNode = ({ node, nodeType, isDragging, onMouseDown, onDelete, onPor
       {/* Floating Log Message */}
       {recentLog && (
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 pointer-events-none whitespace-nowrap">
-          <div className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-900 to-pink-900 border border-pink-500/50 text-xs text-pink-100 shadow-xl shadow-pink-500/20">
+          <div className="px-3 py-1.5 rounded-lg bg-linear-to-r from-purple-900 to-pink-900 border border-pink-500/50 text-xs text-pink-100 shadow-xl shadow-pink-500/20">
             {recentLog.message}
           </div>
         </div>
@@ -1204,13 +1204,13 @@ export default function AIWorkflowAutomation() {
 
       <Navbar py={2} />
       {/* Top Bar */}
-      <div className="h-14 bg-gradient-to-r from-[#150528] to-[#1a0a2e] border-b border-purple-900/50 flex items-center justify-between px-4 z-20 shadow-xl shadow-purple-900/20">
+      <div className="h-14 bg-linear-to-r from-[#150528] to-[#1a0a2e] border-b border-purple-900/50 flex items-center justify-between px-4 z-20 shadow-xl shadow-purple-900/20">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-gradient-to-br from-pink-600 to-purple-600 shadow-lg shadow-pink-500/30">
+            <div className="p-1.5 rounded-lg bg-linear-to-br from-pink-600 to-purple-600 shadow-lg shadow-pink-500/30">
               <Zap className="text-white" size={18} />
             </div>
-            <span className="font-bold text-lg bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text ">Automation</span>
+            <span className="font-bold text-lg bg-linear-to-r from-pink-400 to-purple-400 bg-clip-text ">Automation</span>
           </div>
 
           {/* Workflow Name Input */}
@@ -1273,7 +1273,7 @@ export default function AIWorkflowAutomation() {
           <button
             onClick={() => setChaosMode(!chaosMode)}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium transition-all shadow-lg ${chaosMode
-                ? 'bg-gradient-to-r from-orange-600 to-red-600 ring-2 ring-red-500'
+                ? 'bg-linear-to-r from-orange-600 to-red-600 ring-2 ring-red-500'
                 : 'bg-purple-950/50 border border-purple-700/50 text-purple-300 hover:bg-purple-900/50'
               }`}
           >
@@ -1287,8 +1287,8 @@ export default function AIWorkflowAutomation() {
             disabled={nodes.length === 0}
             title={nodes.length === 0 ? 'Add nodes first' : 'Run simulation (client-side)'}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${simState === 'running'
-                ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500'
-                : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500'
+                ? 'bg-linear-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500'
+                : 'bg-linear-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500'
               }`}
           >
             {simState === 'running' ? (
@@ -1318,7 +1318,7 @@ export default function AIWorkflowAutomation() {
       {/* Load Menu Modal */}
       {showLoadMenu && (
         <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-sm" onClick={() => setShowLoadMenu(false)}>
-          <div className="bg-gradient-to-br from-[#1a0a2e] to-[#0a0118] border-2 border-purple-700 rounded-xl p-6 w-[500px] max-h-[600px] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-linear-to-br from-[#1a0a2e] to-[#0a0118] border-2 border-purple-700 rounded-xl p-6 w-125 max-h-150 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-pink-400">Load Workflow</h3>
               <button onClick={() => setShowLoadMenu(false)} className="text-gray-400 hover:text-white">
@@ -1333,7 +1333,7 @@ export default function AIWorkflowAutomation() {
                 <p className="text-gray-500 text-xs mt-2">Create and save a workflow to see it here.</p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
+              <div className="space-y-2 max-h-100 overflow-y-auto pr-2 scrollbar-thin">
                 {savedWorkflows.map(workflow => (
                   <div
                     key={workflow._id}
@@ -1370,7 +1370,7 @@ export default function AIWorkflowAutomation() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className="w-64 bg-gradient-to-b from-[#150528] to-[#0a0118] border-r border-purple-900/50 flex flex-col overflow-hidden shadow-xl">
+        <div className="w-64 bg-linear-to-b from-[#150528] to-[#0a0118] border-r border-purple-900/50 flex flex-col overflow-hidden shadow-xl">
           <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
             <SidebarSection title="INPUTS" items={NODE_CATEGORIES.INPUTS} onDragStart={handleSidebarDragStart} />
             <SidebarSection title="MODELS" items={NODE_CATEGORIES.MODELS} onDragStart={handleSidebarDragStart} />
@@ -1527,7 +1527,7 @@ export default function AIWorkflowAutomation() {
             slides={inputOutputSlides}
           />
           {/* Console */}
-          <div className="h-40 bg-gradient-to-b from-[#150528] to-[#0a0118] border-t border-purple-900/50 flex flex-col shadow-xl">
+          <div className="h-40 bg-linear-to-b from-[#150528] to-[#0a0118] border-t border-purple-900/50 flex flex-col shadow-xl">
             <div className="h-8 border-b border-purple-900/30 flex items-center px-4 justify-between">
               <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">System Console</span>
               <button onClick={() => setLogs([])} className="text-xs text-purple-500 hover:text-pink-400 transition-colors">

@@ -229,7 +229,7 @@ const SaveDialog = ({ isOpen, onClose, onSave, isSaving, currentName }) => {
             onClick={onClose}
         >
             <div 
-                className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-6 w-[480px] animate-in zoom-in-95 fade-in duration-200" 
+                className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-6 w-120 animate-in zoom-in-95 fade-in duration-200" 
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between mb-4">
@@ -396,7 +396,7 @@ const LoadDialog = ({ isOpen, onClose, onLoad, onDelete }) => {
             onClick={onClose}
         >
             <div 
-                className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-6 w-[700px] max-h-[85vh] flex flex-col animate-in zoom-in-95 fade-in duration-200" 
+                className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-6 w-175 max-h-[85vh] flex flex-col animate-in zoom-in-95 fade-in duration-200" 
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between mb-4">
@@ -1268,6 +1268,7 @@ export default function SystemDesignSimulator() {
                 <div className="relative">
                     <Navbar py={2} />
                     <IntroCarousel
+                        heading='Different Designing Components'
                         storageKey="design_sim_intro_seen"
                         slides={componentSlides}
                     />

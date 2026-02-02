@@ -1127,7 +1127,7 @@ export default function CyberSecuritySim() {
             <div className="text-[9px] font-bold tracking-widest mb-1.5 flex items-center gap-1.5" style={{ color: '#f59e0b' }}>
               <Activity className="w-3 h-3" /> LIVE THREATS
               {activeAttacks.length > 0 && (
-                <span className="ml-auto px-1.5 py-0.25 rounded-full text-[8px] font-bold" style={{ background: '#ef444422', color: '#f87171', border: '1px solid #ef444444' }}>{activeAttacks.length}</span>
+                <span className="ml-auto px-1.5 py-px rounded-full text-[8px] font-bold" style={{ background: '#ef444422', color: '#f87171', border: '1px solid #ef444444' }}>{activeAttacks.length}</span>
               )}
             </div>
             <div className="space-y-1.5 max-h-36 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
@@ -1304,7 +1304,7 @@ export default function CyberSecuritySim() {
                       animation: dead ? 'shake 0.3s infinite' : attacked ? 'pulse-border 1.5s infinite' : 'none'
                     }}>
                     {predicted && !dead && (
-                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-1.5 py-0.25 rounded-full" style={{ background: '#1a0f2e', border: '1px solid #7c3aed', zIndex: 2 }}>
+                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-1.5 py-px rounded-full" style={{ background: '#1a0f2e', border: '1px solid #7c3aed', zIndex: 2 }}>
                         <Eye className="w-2.5 h-2.5" style={{ color: '#a78bfa' }} />
                         <span className="text-[7px] font-bold" style={{ color: '#a78bfa' }}>PREDICTED</span>
                       </div>
