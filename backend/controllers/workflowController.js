@@ -8,7 +8,13 @@ export const createWorkflow = async (req, res) => {
   try {
     const { name, nodes, edges, template } = req.body;
     const ownerId = req.userId;
-    
+
+    if (!ownerId) {
+      return res.status(401).json({
+        message: "User not authenticated"
+      });
+    }
+
     const workflow = await Workflow.create({
       name: name || 'Untitled Workflow',
       ownerId,
@@ -17,13 +23,18 @@ export const createWorkflow = async (req, res) => {
       template: template || 'free-play',
       status: 'idle'
     });
-    
+
     res.status(201).json(workflow);
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Workflow creation failed", error: error.message });
+    console.error("CREATE WORKFLOW ERROR:", error);
+
+    res.status(500).json({
+      message: error.message || "Workflow creation failed"
+    });
   }
 };
+
 
 // ==========================================
 // GET ALL WORKFLOWS FOR USER

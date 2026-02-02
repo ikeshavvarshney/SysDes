@@ -1,72 +1,61 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const workflowSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    default: 'Untitled Workflow'
-  },
-  ownerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  
-  // Canvas Nodes (LLM, Agent, Tools, etc.)
-  nodes: [{
-    id: String,
-    type: String,  // 'IN_USER', 'LLM_GPT', 'TOOL_WEB', etc.
-    x: Number,
-    y: Number,
-    status: { 
-      type: String, 
-      enum: ['idle', 'running', 'success', 'error'],
-      default: 'idle' 
-    }
-  }],
-  
-  // Connections between nodes
-  edges: [{
-    id: String,
-    source: String,  // Node ID
-    target: String   // Node ID
-  }],
-  
-  // Template used (if any)
-  template: {
-    type: String,
-    enum: ['free-play', 'rag-pipeline', 'research-agent', 'multi-agent-collab'],
-    default: 'free-play'
-  },
-  
-  // Workflow execution status
-  status: {
-    type: String,
-    enum: ['idle', 'running', 'completed', 'failed'],
-    default: 'idle'
-  },
-  
-  // Execution History
-  executionHistory: [{
-    timestamp: { type: Date, default: Date.now },
-    logs: [{
-      nodeId: String,
-      message: String,
-      type: { type: String, enum: ['info', 'success', 'error', 'warning'] },
-      timestamp: Number
+const workflowSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      default: 'Untitled Workflow'
+    },
+    
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+
+    // ✅ FIX: Use Mixed type for flexibility
+    nodes: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: []
+    },
+
+    edges: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: []
+    },
+
+    template: {
+      type: String,
+      default: "free-play"
+    },
+    
+    status: {
+      type: String,
+      enum: ['idle', 'running', 'completed', 'failed'],
+      default: 'idle'
+    },
+    
+    // Execution History
+    executionHistory: [{
+      timestamp: { type: Date, default: Date.now },
+      logs: [mongoose.Schema.Types.Mixed],
+      status: String,
+      chaosMode: Boolean
     }],
-    status: String,
-    chaosMode: Boolean
-  }],
-  
-  // Last execution details
-  lastExecution: {
-    timestamp: Date,
-    logs: [mongoose.Schema.Types.Mixed],
-    status: String,
-    duration: Number  // milliseconds
+    
+    // Last execution details
+    lastExecution: {
+      timestamp: Date,
+      logs: [mongoose.Schema.Types.Mixed],
+      status: String,
+      duration: Number
+    }
+  },
+  { 
+    timestamps: true,
+    strict: false // ✅ Allow flexible schema
   }
-  
-}, { timestamps: true });
+);
 
-export default mongoose.model('Workflow', workflowSchema);
+export default mongoose.model("Workflow", workflowSchema);
