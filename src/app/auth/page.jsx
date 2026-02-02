@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 // import Navbar from "@/components/Navbar"; // Uncomment if you have this component
-
+import Navbar from "@/components/Navbar";
 export default function AuthPage() {
   // const router = useRouter(); // Removed Next.js dependency
   const [mode, setMode] = useState("signup"); // signup | login
   const isSignup = mode === "signup";
-
+  const [isSignIn,setIsSignIn]=useState(false)
   // Form State
   const [formData, setFormData] = useState({
     name: "",
@@ -59,8 +59,7 @@ export default function AuthPage() {
       // Success: Store token & user
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Redirect (using standard window.location for compatibility)
+      setIsSignIn(true);      // Redirect (using standard window.location for compatibility)
       // In a Next.js app, you would use router.push("/dashboard")
       window.location.href = "/"; 
 
@@ -85,7 +84,7 @@ export default function AuthPage() {
       </div>
 
       {/* <Navbar /> */}
-
+      <Navbar isSignedIn={isSignIn} setIsSignedIn={setIsSignIn} py={2}></Navbar>
       <section className="relative z-10 flex items-center justify-center min-h-screen px-6 py-20">
         <div className="w-full max-w-md bg-white/5 border border-white/10 rounded-xl p-8 backdrop-blur shadow-2xl">
 
